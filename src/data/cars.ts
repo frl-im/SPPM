@@ -1,0 +1,145 @@
+import { Car } from '@/types/car'
+
+export const carsData: Car[] = [
+  {
+    id: '1',
+    name: 'Nissan Z Proto',
+    model: 'Performance Edition',
+    year: 2024,
+    price: 850000000,
+    image: '/images/1000419780.jpg',
+    description: 'Mobil sports futuristik dengan desain aerodinamis superior dan performa premium',
+    category: 'Sports Car',
+    color: 'Silver Metallic',
+    transmission: 'Automatic',
+    fuel: 'Petrol',
+    mileage: 0,
+    features: [
+      'Twin Turbo Engine',
+      'Advanced Aerodynamics',
+      'Premium Audio System',
+      'Adaptive Suspension',
+      'Performance Brakes'
+    ],
+    rating: 4.9,
+    reviews: 156,
+    isFeatured: true
+  },
+  {
+    id: '2',
+    name: 'Ferrari F8 Tributo',
+    model: 'Sports Legend',
+    year: 2024,
+    price: 2500000000,
+    image: '/images/1000419781.jpg',
+    description: 'Masterpiece Italia dengan performa ekstrem dan handling sempurna di setiap medan',
+    category: 'Supercar',
+    color: 'Giallo Modena Yellow',
+    transmission: 'Automatic',
+    fuel: 'Petrol',
+    mileage: 0,
+    features: [
+      'V12 Engine 720hp',
+      'Carbon Fiber Body',
+      'Sport Exhaust System',
+      'Racing Suspension',
+      'Cuoio Leather Interior'
+    ],
+    rating: 5.0,
+    reviews: 89,
+    isFeatured: true
+  },
+  {
+    id: '3',
+    name: 'Porsche 911 Turbo',
+    model: 'Performance Peak',
+    year: 2024,
+    price: 2200000000,
+    image: '/images/1000419782.jpg',
+    description: 'Legenda Jerman dengan teknologi turbo terdepan dan kendaraan tercepat di kelasnya',
+    category: 'Supercar',
+    color: 'Aqua Blue Metallic',
+    transmission: 'Automatic',
+    fuel: 'Petrol',
+    mileage: 0,
+    features: [
+      'Twin Turbo 580hp',
+      'All-Wheel Drive',
+      'Ceramic Brakes',
+      'Air Suspension',
+      'Premium Cockpit'
+    ],
+    rating: 4.9,
+    reviews: 124,
+    isFeatured: true
+  },
+  {
+    id: '4',
+    name: 'Chevrolet Corvette C8',
+    model: 'Mid-Engine Beast',
+    year: 2024,
+    price: 1600000000,
+    image: '/images/1000419783.jpg',
+    description: 'Revolusi American muscle car dengan mesin tengah dan power yang memukau',
+    category: 'Sports Car',
+    color: 'Pearl White Tri-Coat',
+    transmission: 'Automatic',
+    fuel: 'Petrol',
+    mileage: 0,
+    features: [
+      'LT2 V8 495hp',
+      'Magnetic Suspension',
+      'Carbon Ceramic Brakes',
+      'Performance Traction Control',
+      'Driver Information Center'
+    ],
+    rating: 4.8,
+    reviews: 178
+  },
+  {
+    id: '5',
+    name: 'Corvette Stingray',
+    model: 'Orange Lightning',
+    year: 2024,
+    price: 1550000000,
+    image: '/images/1000419784.jpg',
+    description: 'Ikon Amerika dengan warna energik dan akselerasi yang mendebarkan setiap saat',
+    category: 'Sports Car',
+    color: 'Chevrolet Orange',
+    transmission: 'Automatic',
+    fuel: 'Petrol',
+    mileage: 0,
+    features: [
+      'V8 Engine 495hp',
+      'Active Suspension',
+      'Dual Exhaust',
+      'Sport Appearance Package',
+      'Technology Package'
+    ],
+    rating: 4.7,
+    reviews: 142
+  },
+  {
+    id: '6',
+    name: 'Corvette Z06',
+    model: 'Track Master',
+    year: 2024,
+    price: 1800000000,
+    image: '/images/1000419785.jpg',
+    description: 'Versi paling brutal dengan setup racing dan performa sirkuit yang mengagumkan',
+    category: 'Sports Car',
+    color: 'Corvette Blue',
+    transmission: 'Automatic',
+    fuel: 'Petrol',
+    mileage: 0,
+    features: [
+      'LT6 V8 670hp',
+      'Track-Tuned Suspension',
+      'Carbon Ceramic Brakes',
+      'Racing Seats',
+      'Performance Data Recorder'
+    ],
+    rating: 4.9,
+    reviews: 203
+  }
+]
