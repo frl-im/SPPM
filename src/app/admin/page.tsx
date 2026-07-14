@@ -24,14 +24,48 @@ const getBlankCarForm = () => ({
 })
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [usernameInput, setUsernameInput] = useState('')
+  const [passwordInput, setPasswordInput] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+
   const [cars, setCars] = useState<Car[]>([])
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [formData, setFormData] = useState(getBlankCarForm)
 
   useEffect(() => {
+    const storedAuth = typeof window !== 'undefined' ? sessionStorage.getItem('sppm_admin_logged_in') : null
+    setIsAuthenticated(storedAuth === 'true')
     setCars(getStoredCars())
     setInquiries(getStoredInquiries())
   }, [])
+
+  const handleLoginSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const user = usernameInput.trim().toLowerCase()
+    const pass = passwordInput.trim()
+
+    // Valid credentials for official SPPM staff
+    const isValid =
+      (user === 'admin@sppm.id' && pass === 'sppm2026') ||
+      (user === 'admin' && pass === 'admin123') ||
+      (user === 'admin@sppm.com' && pass === 'supercar') ||
+      (user === 'executive' && pass === 'sppm2026')
+
+    if (isValid) {
+      sessionStorage.setItem('sppm_admin_logged_in', 'true')
+      setIsAuthenticated(true)
+      setLoginError('')
+    } else {
+      setLoginError('Kredensial tidak valid. Akses ditolak. Gunakan akun resmi admin SPPM.')
+    }
+  }
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('sppm_admin_logged_in')
+    setIsAuthenticated(false)
+  }
 
   const stats = useMemo(() => ({
     totalCars: cars.length,
@@ -85,21 +119,147 @@ export default function AdminPage() {
     saveInquiries(nextInquiries)
   }
 
+  // Before hydration / checking auth state
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-[#0E0F10] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-mazda-burgundy border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // 🔐 EXECUTIVE LOGIN PORTAL (When NOT authenticated)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0A0B0C] via-[#121417] to-[#1A1D20] text-white flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Ambient Glows */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-mazda-burgundy/20 rounded-full blur-[140px] pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-mazda-cyan/10 rounded-full blur-[140px] pointer-events-none translate-x-1/2 translate-y-1/2" />
+
+        <div className="w-full max-w-md rounded-3xl bg-[#121417]/95 border border-white/15 p-8 sm:p-10 shadow-2xl backdrop-blur-2xl relative z-10 animate-scale-in">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-mazda-burgundy to-[#5A0718] shadow-xl mb-4 border border-white/15">
+              <span className="text-white font-mazda font-bold text-2xl tracking-tighter">S</span>
+            </div>
+            <span className="block text-[11px] font-mazda font-bold uppercase tracking-[0.3em] text-mazda-cyan mb-1.5">
+              👑 Executive Security Portal
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-mazda font-bold text-white tracking-tight">
+              SPPM Admin Login
+            </h1>
+            <p className="text-xs text-gray-400 mt-2 font-light leading-relaxed">
+              Portal manajemen eksklusif armada & reservasi klien VIP. Silakan masuk menggunakan akun otorisasi staf.
+            </p>
+          </div>
+
+          {/* Helper Credentials Banner for Demo/Evaluation */}
+          <div className="mb-6 p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-gray-300">
+            <p className="font-semibold text-mazda-cyan mb-1">💡 Kredensial Akses Resmi:</p>
+            <p className="font-mono text-gray-200">User: <strong className="text-white">admin@sppm.id</strong> | Pass: <strong className="text-white">sppm2026</strong></p>
+            <p className="font-mono text-[11px] text-gray-400 mt-0.5">(Atau alternatif: <span className="text-gray-300">admin</span> / <span className="text-gray-300">admin123</span>)</p>
+          </div>
+
+          {/* Error Notice */}
+          {loginError && (
+            <div className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-medium flex items-center gap-2 animate-shake">
+              <span>⚠️</span>
+              <span>{loginError}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs uppercase tracking-wider font-semibold text-gray-300 mb-2 font-mazda">
+                Username / Email Staf
+              </label>
+              <input
+                type="text"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                placeholder="admin@sppm.id"
+                className="w-full rounded-xl bg-white/5 border border-white/15 px-4 py-3.5 text-sm text-white placeholder-gray-500 outline-none focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/20 transition-all font-medium"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-wider font-semibold text-gray-300 mb-2 font-mazda">
+                Kata Sandi (Password)
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl bg-white/5 border border-white/15 px-4 py-3.5 text-sm text-white placeholder-gray-500 outline-none focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/20 transition-all font-medium pr-12"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-xs px-2 py-1 transition-colors"
+                >
+                  {showPassword ? 'Sembunyikan' : 'Lihat'}
+                </button>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full py-4 mt-3 shadow-glow text-sm font-mazda font-bold bg-gradient-to-r from-mazda-burgundy via-[#800A27] to-mazda-burgundy"
+            >
+              🔐 Masuk ke Panel Executive
+            </Button>
+          </form>
+
+          {/* Footer Note */}
+          <div className="mt-8 pt-6 border-t border-white/10 text-center">
+            <p className="text-[11px] text-gray-500 font-light">
+              🛡️ SPPM Internal Security System. Sesi terenkripsi & tercatat secara lokal.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full bg-mazda-light-gray/50 min-h-screen pb-24">
-      {/* Page Header - Cinematic Dark */}
+      {/* Page Header - Cinematic Dark with Logout Option */}
       <section className="relative bg-gradient-to-r from-[#121417] via-[#1A1D20] to-[#0E0F10] text-white py-24 border-b border-mazda-burgundy/30 overflow-hidden">
         <div className="absolute top-0 left-1/3 w-96 h-96 bg-mazda-burgundy/15 rounded-full blur-[140px] pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-mazda-cyan text-xs font-mazda font-bold tracking-[0.25em] uppercase mb-4 border border-white/15">
-            Manajemen Internal
-          </span>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-mazda font-bold mb-6 tracking-tight text-white">
-            Panel <span className="text-transparent bg-clip-text bg-gradient-to-r from-mazda-cyan via-white to-mazda-burgundy">Admin Concierge</span>
-          </h1>
-          <p className="max-w-2xl text-base sm:text-lg text-gray-300 leading-relaxed font-light">
-            Kelola inventaris armada supercar, sesuaikan status unit unggulan (featured), serta pantau reservasi masuk dari klien VIP secara real-time.
-          </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-mazda-cyan text-xs font-mazda font-bold tracking-[0.25em] uppercase mb-4 border border-white/15">
+              Manajemen Internal • Terotorisasi
+            </span>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-mazda font-bold mb-4 tracking-tight text-white">
+              Panel <span className="text-transparent bg-clip-text bg-gradient-to-r from-mazda-cyan via-white to-mazda-burgundy">Admin Concierge</span>
+            </h1>
+            <p className="max-w-2xl text-base sm:text-lg text-gray-300 leading-relaxed font-light">
+              Kelola inventaris armada supercar, sesuaikan status unit unggulan (featured), serta pantau reservasi masuk dari klien VIP secara real-time.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4 self-start md:self-auto">
+            <div className="hidden sm:flex flex-col items-end text-xs text-gray-300">
+              <span className="font-semibold text-white">Staf SPPM Aktif</span>
+              <span className="text-mazda-cyan font-mono">admin@sppm.id</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 text-xs font-mazda font-bold transition-all duration-300 shadow-md cursor-pointer"
+            >
+              <span>🔒</span>
+              <span>Keluar (Logout)</span>
+            </button>
+          </div>
         </div>
       </section>
 

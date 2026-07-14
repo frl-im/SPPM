@@ -78,11 +78,6 @@ export function Footer() {
                   Tentang SPPM
                 </Link>
               </li>
-              <li>
-                <Link href="/admin" className="text-sm text-mazda-steel-gray hover:text-white hover:translate-x-1 transition-all duration-200 inline-block">
-                  Panel Admin
-                </Link>
-              </li>
             </ul>
           </div>
 

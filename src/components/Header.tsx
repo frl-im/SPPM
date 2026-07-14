@@ -14,7 +14,6 @@ export function Header() {
     { name: 'Katalog', href: '/catalog' },
     { name: 'Tentang', href: '/about' },
     { name: 'Booking', href: '/booking' },
-    { name: 'Admin', href: '/admin' },
     { name: 'Kontak', href: '/contact' },
   ]
 
