@@ -1,4 +1,8 @@
-// Car type definition
+export interface CarColorOption {
+  name: string
+  hex: string
+}
+
 export interface Car {
   id: string
   name: string
@@ -16,10 +20,7 @@ export interface Car {
   rating: number
   reviews: number
   isFeatured?: boolean
-  colorOptions?: Array<{
-    name: string
-    hex: string
-  }>
+  colorOptions?: CarColorOption[]
 }
 
 export interface Inquiry {
