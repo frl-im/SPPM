@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-white text-mazda-charcoal antialiased selection:bg-mazda-burgundy selection:text-white;
+  }
+
+  /* Typography */
+  h1 {
+    @apply text-display-lg font-mazda font-bold text-mazda-black tracking-tight;
+  }
+
+  h2 {
+    @apply text-h2 font-mazda font-bold text-mazda-black tracking-tight;
+  }
+
+  h3 {
+    @apply text-h3 font-mazda font-bold text-mazda-charcoal tracking-tight;
+  }
+
+  h4 {
+    @apply text-h4 font-mazda font-medium text-mazda-charcoal;
+  }
+
+  h5 {
+    @apply text-h5 font-mazda font-bold text-mazda-charcoal;
+  }
+
+  p {
+    @apply text-body font-mazda font-normal text-mazda-charcoal;
+  }
+
+  a {
+    @apply text-mazda-blue hover:text-mazda-burgundy transition-colors duration-200;
+  }
+}
+
+@layer components {
+  .container-max {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-mazda-burgundy text-white px-7 py-3.5 rounded-lg font-mazda font-bold text-button transition-all duration-300 hover:bg-[#6B0820] hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-mazda-burgundy/50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center bg-white text-mazda-charcoal border-2 border-mazda-charcoal px-7 py-3.5 rounded-lg font-mazda font-bold text-button transition-all duration-300 hover:bg-mazda-light-gray hover:border-mazda-burgundy hover:text-mazda-burgundy hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-mazda-charcoal/30;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-mazda-border-gray/70 shadow-premium hover:shadow-premium-hover transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 border border-mazda-border-gray rounded-xl font-mazda text-body bg-white text-mazda-charcoal placeholder-mazda-steel-gray/80 transition-all duration-200 focus:outline-none focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10;
+  }
+
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-xl border border-white/40 shadow-glass;
+  }
+
+  .glass-panel-dark {
+    @apply bg-mazda-black/85 backdrop-blur-xl border border-white/10 shadow-2xl text-white;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #910a2d;
+}
