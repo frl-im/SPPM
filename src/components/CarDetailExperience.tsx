@@ -183,6 +183,7 @@ export function CarDetailExperience({ car }: CarDetailExperienceProps) {
   const [downPayment, setDownPayment] = useState(Math.round(car.price * 0.2))
   const [tenor, setTenor] = useState(36)
   const [interestRate, setInterestRate] = useState(6.5)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const financedAmount = Math.max(car.price - downPayment, 0)
 
@@ -419,92 +420,155 @@ export function CarDetailExperience({ car }: CarDetailExperienceProps) {
             </label>
           </div>
 
-          {/* Estimasi Rincian Pembayaran - 2x2 Spacious Layout (Guaranteed ZERO Collision / Overlap) */}
-          <div className="mt-8 rounded-3xl bg-gradient-to-br from-[#121417] via-[#1A1D20] to-mazda-black p-6 sm:p-8 lg:p-10 text-white border border-white/10 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-mazda-burgundy/25 rounded-full blur-[130px] pointer-events-none" />
-            <div className="relative z-10">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-white/15">
+          {/* Optimized Clean Trigger Box for Pop-Up Modal */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-6 p-6 rounded-2xl bg-gradient-to-br from-mazda-light-gray/80 via-white to-mazda-light-gray/40 border border-mazda-border-gray shadow-sm">
+            <div>
+              <span className="text-[11px] uppercase tracking-[0.2em] text-mazda-burgundy font-mazda font-bold block mb-1">
+                Kalkulasi Finansial Siap
+              </span>
+              <h4 className="text-lg font-mazda font-bold text-mazda-black">
+                Simulasi Pembiayaan {car.name}
+              </h4>
+              <p className="text-xs text-mazda-steel-gray mt-1 font-light">
+                DP: <strong className="text-mazda-charcoal font-semibold">{formatCurrency(downPayment)}</strong> • Tenor: <strong className="text-mazda-charcoal font-semibold">{tenor} Bulan</strong> • Bunga: <strong className="text-mazda-charcoal font-semibold">{interestRate}% / thn</strong>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-mazda-burgundy via-[#800A27] to-[#5A0718] px-8 py-4 text-sm font-mazda font-bold text-white shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 ring-4 ring-mazda-burgundy/15 cursor-pointer"
+            >
+              <span>✨ CEK HASIL SIMULASI CICILAN</span>
+              <span className="text-mazda-cyan font-mono text-base font-bold">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Luxury Glassmorphism VIP Pop-Up Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-scale-in overflow-y-auto">
+          <div
+            className="relative w-full max-w-3xl rounded-3xl bg-gradient-to-br from-[#121417] via-[#1A1D20] to-mazda-black p-6 sm:p-8 lg:p-10 text-white border border-white/15 shadow-2xl overflow-hidden my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Background Glow */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-mazda-burgundy/25 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-72 h-72 bg-mazda-cyan/10 rounded-full blur-[120px] pointer-events-none" />
+
+            {/* Modal Header */}
+            <div className="relative z-10 flex items-start justify-between gap-4 pb-6 border-b border-white/15">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-mazda-cyan text-[11px] font-mazda font-bold uppercase tracking-wider mb-2.5">
+                  <span>💎 Sertifikat Estimasi Pembiayaan VIP</span>
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-mazda font-bold text-white tracking-tight">
+                  {car.name} {car.model}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-300 font-light mt-1">
+                  Warna Terpilih: <strong className="text-white font-medium">{selectedColor.name}</strong> • Harga OTR: <strong className="text-white font-semibold">{formatCurrency(car.price)}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-10 h-10 rounded-full bg-white/10 border border-white/15 text-gray-300 hover:text-white hover:bg-white/20 flex items-center justify-center text-lg transition-all cursor-pointer flex-shrink-0"
+                aria-label="Tutup Pop-up"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Hero Monthly Installment Card inside Pop-Up */}
+            <div className="relative z-10 mt-6 rounded-2xl bg-gradient-to-br from-mazda-burgundy via-[#800A27] to-[#5A0718] p-6 sm:p-8 border border-white/25 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 ring-2 ring-mazda-burgundy/50">
+              <div>
+                <span className="text-xs uppercase tracking-[0.2em] text-mazda-cyan font-mazda font-bold block mb-1">
+                  Angsuran Rutin Bulanan
+                </span>
+                <h4 className="text-3xl sm:text-4xl font-mazda font-bold text-white tracking-tight drop-shadow-md break-all sm:break-normal">
+                  {formatCurrency(installment.monthly)}
+                </h4>
+                <p className="text-xs text-white/80 font-light mt-1">
+                  Estimasi cicilan tetap selama tenor <strong className="font-semibold text-white">{tenor} bulan ({Math.round((tenor / 12) * 10) / 10} tahun)</strong>
+                </p>
+              </div>
+              <div className="sm:text-right flex sm:flex-col justify-between sm:justify-center items-center sm:items-end border-t sm:border-t-0 border-white/20 pt-3 sm:pt-0">
+                <span className="text-xs text-white/70">Suku Bunga</span>
+                <span className="text-lg sm:text-2xl font-mazda font-bold text-white font-mono">{interestRate}% / thn</span>
+              </div>
+            </div>
+
+            {/* Detailed Table Grid */}
+            <div className="relative z-10 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-xl bg-white/5 p-4 sm:p-5 border border-white/10 flex items-center justify-between">
                 <div>
-                  <span className="text-xs uppercase tracking-[0.3em] text-mazda-cyan font-mazda font-bold block mb-1">
-                    Simulasi Finansial VIP
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-mazda font-bold text-white tracking-tight">
-                    Estimasi Rincian Pembayaran
-                  </h3>
+                  <p className="text-xs text-gray-400 font-medium">Harga Kendaraan (OTR)</p>
+                  <p className="text-base font-mazda font-bold text-white mt-0.5">{formatCurrency(car.price)}</p>
                 </div>
-                <div className="inline-flex items-center gap-3 text-xs text-gray-300 bg-white/10 px-4 py-2 rounded-full border border-white/15 self-start sm:self-auto shadow-inner">
-                  <span>Tenor: <strong className="text-white">{tenor} Bln</strong></span>
-                  <span>•</span>
-                  <span>Bunga: <strong className="text-white">{interestRate}%</strong></span>
-                </div>
+                <span className="text-xs text-gray-500 font-mono">100%</span>
               </div>
 
-              {/* Grid 2x2 Sangat Lega: Setiap kotak mendapat setengah lebar penuh kontainer (atau 1 kolom di HP) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-7 items-stretch">
-                {/* 1. Pinjaman Pokok */}
-                <div className="rounded-2xl bg-white/5 p-6 sm:p-7 border border-white/15 backdrop-blur-md flex flex-col justify-between shadow-xl hover:border-white/30 transition-all">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3.5 mb-4">
-                    <p className="text-xs sm:text-sm uppercase tracking-wider text-gray-300 font-bold">
-                      Pinjaman Pokok
-                    </p>
-                    <span className="text-[11px] text-gray-400 font-medium px-2.5 py-0.5 rounded bg-white/5 border border-white/10">
-                      Setelah dikurangi DP
-                    </span>
-                  </div>
-                  <p className="text-2xl sm:text-3xl font-mazda font-bold text-white tracking-tight leading-tight break-all sm:break-normal">
-                    {formatCurrency(financedAmount)}
-                  </p>
+              <div className="rounded-xl bg-white/5 p-4 sm:p-5 border border-white/10 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-400 font-medium">Uang Muka (DP)</p>
+                  <p className="text-base font-mazda font-bold text-mazda-cyan mt-0.5">{formatCurrency(downPayment)}</p>
                 </div>
+                <span className="text-xs text-mazda-cyan font-mono font-bold">
+                  {Math.round((downPayment / car.price) * 100)}%
+                </span>
+              </div>
 
-                {/* 2. Cicilan per Bulan (VIP Highlight) */}
-                <div className="rounded-2xl bg-gradient-to-br from-mazda-burgundy via-[#800A27] to-[#5A0718] p-6 sm:p-7 border border-white/25 shadow-2xl flex flex-col justify-between ring-2 ring-mazda-burgundy/50 transform md:-translate-y-1">
-                  <div className="flex items-center justify-between border-b border-white/20 pb-3.5 mb-4">
-                    <p className="text-xs sm:text-sm uppercase tracking-wider text-white font-bold">
-                      Cicilan per Bulan
-                    </p>
-                    <span className="text-[11px] text-mazda-cyan font-bold px-2.5 py-0.5 rounded bg-black/30 border border-white/15">
-                      Angsuran Rutin
-                    </span>
-                  </div>
-                  <p className="text-3xl sm:text-4xl font-mazda font-bold text-white tracking-tight leading-tight drop-shadow-md break-all sm:break-normal">
-                    {formatCurrency(installment.monthly)}
-                  </p>
+              <div className="rounded-xl bg-white/5 p-4 sm:p-5 border border-white/10 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-400 font-medium">Pinjaman Pokok (Utang)</p>
+                  <p className="text-base font-mazda font-bold text-white mt-0.5">{formatCurrency(financedAmount)}</p>
                 </div>
+                <span className="text-xs text-gray-400">Setelah DP</span>
+              </div>
 
-                {/* 3. Total Bunga */}
-                <div className="rounded-2xl bg-white/5 p-6 sm:p-7 border border-white/15 backdrop-blur-md flex flex-col justify-between shadow-xl hover:border-white/30 transition-all">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3.5 mb-4">
-                    <p className="text-xs sm:text-sm uppercase tracking-wider text-gray-300 font-bold">
-                      Total Bunga
-                    </p>
-                    <span className="text-[11px] text-gray-400 font-medium px-2.5 py-0.5 rounded bg-white/5 border border-white/10">
-                      Akumulasi Tenor
-                    </span>
-                  </div>
-                  <p className="text-2xl sm:text-3xl font-mazda font-bold text-white tracking-tight leading-tight break-all sm:break-normal">
-                    {formatCurrency(installment.interest)}
-                  </p>
+              <div className="rounded-xl bg-white/5 p-4 sm:p-5 border border-white/10 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-400 font-medium">Total Bunga Leasing</p>
+                  <p className="text-base font-mazda font-bold text-white mt-0.5">{formatCurrency(installment.interest)}</p>
                 </div>
+                <span className="text-xs text-gray-400">Akumulasi</span>
+              </div>
 
-                {/* 4. Total Pembayaran */}
-                <div className="rounded-2xl bg-white/5 p-6 sm:p-7 border border-white/15 backdrop-blur-md flex flex-col justify-between shadow-xl hover:border-white/30 transition-all">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3.5 mb-4">
-                    <p className="text-xs sm:text-sm uppercase tracking-wider text-gray-300 font-bold">
-                      Total Pembayaran
-                    </p>
-                    <span className="text-[11px] text-gray-400 font-medium px-2.5 py-0.5 rounded bg-white/5 border border-white/10">
-                      Pokok + Bunga
-                    </span>
-                  </div>
-                  <p className="text-2xl sm:text-3xl font-mazda font-bold text-white tracking-tight leading-tight break-all sm:break-normal">
-                    {formatCurrency(installment.total)}
-                  </p>
+              <div className="sm:col-span-2 rounded-xl bg-white/10 p-5 border border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs text-mazda-cyan uppercase tracking-wider font-bold">Total Pembayaran Keseluruhan</p>
+                  <p className="text-xs text-gray-400">Akumulasi seluruh cicilan (Pokok + Bunga) selama {tenor} bulan</p>
                 </div>
+                <p className="text-xl sm:text-2xl font-mazda font-bold text-white tracking-tight break-all sm:break-normal">
+                  {formatCurrency(installment.total)}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="relative z-10 mt-8 pt-6 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-[11px] text-gray-400 font-light text-center sm:text-left">
+                * Angka simulasi ini merupakan estimasi resmi dari kalkulator SPPM dan dapat disesuaikan dengan paket kemitraan leasing pilihan Anda.
+              </p>
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-mazda font-bold text-white transition-all cursor-pointer"
+                >
+                  Tutup
+                </button>
+                <a
+                  href={`/booking?carId=${car.id}`}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-mazda-burgundy hover:bg-[#800A27] text-xs font-mazda font-bold text-white transition-all shadow-lg text-center cursor-pointer"
+                >
+                  Reservasi Unit Ini
+                </a>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   )
 }
