@@ -33,6 +33,7 @@ export default function AdminPage() {
   const [cars, setCars] = useState<Car[]>([])
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [formData, setFormData] = useState(getBlankCarForm)
+  const [activeAdminTab, setActiveAdminTab] = useState<'OPERATIONAL' | 'ANALYTICS'>('OPERATIONAL')
 
   useEffect(() => {
     const storedAuth = typeof window !== 'undefined' ? sessionStorage.getItem('sppm_admin_logged_in') : null
@@ -72,6 +73,94 @@ export default function AdminPage() {
     featuredCars: cars.filter((car) => car.isFeatured).length,
     totalInquiries: inquiries.length,
   }), [cars, inquiries])
+
+  const analytics = useMemo(() => {
+    const totalValuation = cars.reduce((acc, car) => acc + car.price, 0)
+    const averagePrice = cars.length > 0 ? totalValuation / cars.length : 0
+
+    // Category distribution
+    const categoryMap: Record<string, number> = {}
+    cars.forEach((car) => {
+      const cat = car.category || 'Lainnya'
+      categoryMap[cat] = (categoryMap[cat] || 0) + 1
+    })
+    const categoryBreakdown = Object.entries(categoryMap).map(([name, count]) => ({
+      name,
+      count,
+      percentage: cars.length > 0 ? Math.round((count / cars.length) * 100) : 0,
+    }))
+
+    // Price tiers breakdown (< 2M, 2M - 5M, > 5M)
+    const tierUnder2M = cars.filter((c) => c.price < 2000000000).length
+    const tier2Mto5M = cars.filter((c) => c.price >= 2000000000 && c.price <= 5000000000).length
+    const tierOver5M = cars.filter((c) => c.price > 5000000000).length
+    const priceTiers = [
+      { label: '< Rp 2 Miliar (Luxury Sports)', count: tierUnder2M, percentage: cars.length > 0 ? Math.round((tierUnder2M / cars.length) * 100) : 0, barHex: '#3B82F6', colorClass: 'from-blue-600 to-blue-400' },
+      { label: 'Rp 2M - Rp 5M (Supercar Flagship)', count: tier2Mto5M, percentage: cars.length > 0 ? Math.round((tier2Mto5M / cars.length) * 100) : 0, barHex: '#00D1FF', colorClass: 'from-mazda-cyan to-blue-500' },
+      { label: '> Rp 5 Miliar (Hypercar / VIP Bespoke)', count: tierOver5M, percentage: cars.length > 0 ? Math.round((tierOver5M / cars.length) * 100) : 0, barHex: '#800A27', colorClass: 'from-mazda-burgundy to-red-600' },
+    ]
+
+    // Lead types breakdown
+    const simLeads = inquiries.filter((i) => i.type === 'Simulation').length
+    const customLeads = inquiries.filter((i) => i.type === 'CustomBuild').length
+    const generalLeads = inquiries.filter((i) => !i.type || i.type === 'General').length
+    const leadTypes = [
+      { label: 'Simulasi Cicilan (Kalkulator Resmi)', count: simLeads, percentage: inquiries.length > 0 ? Math.round((simLeads / inquiries.length) * 100) : 0, color: 'from-blue-600 to-cyan-500', icon: '📊' },
+      { label: 'Custom Build & Spesifikasi Khusus', count: customLeads, percentage: inquiries.length > 0 ? Math.round((customLeads / inquiries.length) * 100) : 0, color: 'from-purple-600 to-pink-500', icon: '🛠️' },
+      { label: 'Reservasi & Konsultasi Umum', count: generalLeads, percentage: inquiries.length > 0 ? Math.round((generalLeads / inquiries.length) * 100) : 0, color: 'from-amber-500 to-orange-500', icon: '📩' },
+    ]
+
+    // Lead status breakdown
+    const statusBaru = inquiries.filter((i) => i.status === 'Baru').length
+    const statusDiproses = inquiries.filter((i) => i.status === 'Diproses').length
+    const statusSelesai = inquiries.filter((i) => i.status === 'Selesai').length
+    const responseRate = inquiries.length > 0 ? Math.round(((statusDiproses + statusSelesai) / inquiries.length) * 100) : 0
+
+    // Average Tenor and DP for simulation leads
+    const simInquiries = inquiries.filter((i) => i.simulationDetails)
+    const avgTenor = simInquiries.length > 0 ? Math.round(simInquiries.reduce((acc, i) => acc + (i.simulationDetails?.tenor || 36), 0) / simInquiries.length) : 36
+    const avgDP = simInquiries.length > 0 ? Math.round(simInquiries.reduce((acc, i) => acc + (i.simulationDetails?.downPayment || 0), 0) / simInquiries.length) : 500000000
+
+    // Top highest valuation cars
+    const topValuedCars = [...cars].sort((a, b) => b.price - a.price).slice(0, 5)
+
+    return {
+      totalValuation,
+      averagePrice,
+      categoryBreakdown,
+      priceTiers,
+      leadTypes,
+      statusBaru,
+      statusDiproses,
+      statusSelesai,
+      responseRate,
+      avgTenor,
+      avgDP,
+      topValuedCars,
+    }
+  }, [cars, inquiries])
+
+  const handleExportCSV = () => {
+    const header = ['ID', 'Klien', 'Email', 'Telepon', 'Unit / Minat', 'Tipe Lead', 'Status', 'Tanggal']
+    const rows = inquiries.map((item) => [
+      item.id,
+      `"${item.name}"`,
+      item.email,
+      item.phone,
+      `"${item.carName || 'Konsultasi'}"`,
+      item.type || 'General',
+      item.status,
+      item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : '-',
+    ])
+    const csvContent = 'data:text/csv;charset=utf-8,' + [header.join(','), ...rows.map((e) => e.join(','))].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `SPPM_Executive_Report_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   const handleAddCar = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -263,271 +352,658 @@ export default function AdminPage() {
         </div>
       </section>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20 space-y-10">
-        {/* Stats Grid */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex items-center justify-between">
+      {/* Executive Navigation Tabs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20 mb-8">
+        <div className="bg-white rounded-2xl p-2 shadow-premium border border-mazda-border-gray/80 flex flex-col sm:flex-row gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('OPERATIONAL')}
+            className={`flex-1 py-3.5 px-6 rounded-xl font-mazda font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
+              activeAdminTab === 'OPERATIONAL'
+                ? 'bg-mazda-burgundy text-white shadow-md scale-[1.01]'
+                : 'text-mazda-charcoal hover:bg-mazda-light-gray/60'
+            }`}
+          >
+            <span className="text-base">🏎️</span>
+            <span>Manajemen Operasional & Reservasi</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('ANALYTICS')}
+            className={`flex-1 py-3.5 px-6 rounded-xl font-mazda font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
+              activeAdminTab === 'ANALYTICS'
+                ? 'bg-gradient-to-r from-mazda-cyan to-[#0088CC] text-[#1A1A1A] shadow-md scale-[1.01]'
+                : 'text-mazda-charcoal hover:bg-mazda-light-gray/60'
+            }`}
+          >
+            <span className="text-base">📊</span>
+            <span>Dashboard Laporan & Grafik Statistik Eksekutif</span>
+          </button>
+        </div>
+      </div>
+
+      {activeAdminTab === 'ANALYTICS' ? (
+        /* =========================================================================
+         * 📊 DASHBOARD LAPORAN & GRAFIK STATISTIK KHUSUS ADMIN
+         * ========================================================================= */
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 space-y-8 animate-fade-in">
+          {/* Header Action Bar */}
+          <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 sm:p-8 shadow-premium flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <p className="text-xs text-mazda-steel-gray font-mazda font-bold uppercase tracking-[0.2em]">Total Armada</p>
-              <p className="text-4xl font-mazda font-bold text-mazda-burgundy mt-2">{stats.totalCars}</p>
+              <span className="text-[11px] font-mazda font-bold uppercase tracking-[0.25em] text-mazda-cyan block">
+                Executive Statistical Intelligence
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-charcoal mt-1">
+                Laporan & Analitik Kinerja SPPM
+              </h2>
+              <p className="text-xs sm:text-sm text-mazda-steel-gray mt-1 max-w-2xl font-light">
+                Pantau distribusi inventaris, tren harga supercar, performa kalkulasi cicilan, dan analisis konversi prospek VIP secara real-time.
+              </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-mazda-burgundy/10 text-mazda-burgundy flex items-center justify-center text-2xl">
-              🏎️
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="px-5 py-3 rounded-xl bg-mazda-light-gray/80 hover:bg-mazda-light-gray border border-mazda-border-gray text-mazda-charcoal text-xs font-mazda font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+              >
+                <span>📥</span>
+                <span>Unduh Laporan (.CSV)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-5 py-3 rounded-xl bg-mazda-burgundy hover:bg-[#800A27] text-white text-xs font-mazda font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md"
+              >
+                <span>🖨️</span>
+                <span>Cetak Laporan PDF</span>
+              </button>
             </div>
           </div>
-          <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex items-center justify-between">
-            <div>
-              <p className="text-xs text-mazda-steel-gray font-mazda font-bold uppercase tracking-[0.2em]">Sorotan Utama (Featured)</p>
-              <p className="text-4xl font-mazda font-bold text-mazda-charcoal mt-2">{stats.featuredCars}</p>
+
+          {/* Key Financial Metrics (4 Cards) */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 shadow-premium flex flex-col justify-between">
+              <div>
+                <p className="text-[11px] text-mazda-steel-gray font-mazda font-bold uppercase tracking-wider">Total Valuasi Armada</p>
+                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-burgundy mt-2">
+                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(analytics.totalValuation)}
+                </p>
+              </div>
+              <span className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5">
+                <span>💎</span> Akumulasi OTR seluruh {cars.length} unit
+              </span>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-mazda-burgundy/10 text-mazda-burgundy flex items-center justify-center text-2xl">
-              ⭐
+
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 shadow-premium flex flex-col justify-between">
+              <div>
+                <p className="text-[11px] text-mazda-steel-gray font-mazda font-bold uppercase tracking-wider">Rata-Rata Harga / Unit</p>
+                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-charcoal mt-2">
+                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(analytics.averagePrice)}
+                </p>
+              </div>
+              <span className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5">
+                <span>🏷️</span> Standar kelas penawaran SPPM
+              </span>
+            </div>
+
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 shadow-premium flex flex-col justify-between">
+              <div>
+                <p className="text-[11px] text-mazda-steel-gray font-mazda font-bold uppercase tracking-wider">Penyelesaian Leads (SLA)</p>
+                <p className="text-2xl sm:text-3xl font-mazda font-bold text-green-700 mt-2">
+                  {analytics.responseRate}%
+                </p>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-3 overflow-hidden">
+                  <div className="bg-green-600 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${analytics.responseRate}%` }} />
+                </div>
+              </div>
+              <span className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5">
+                <span>⚡</span> {analytics.statusDiproses + analytics.statusSelesai} dari {inquiries.length} pesanan tertangani
+              </span>
+            </div>
+
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 shadow-premium flex flex-col justify-between">
+              <div>
+                <p className="text-[11px] text-mazda-steel-gray font-mazda font-bold uppercase tracking-wider">Favorit Simulasi Tenor</p>
+                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-cyan mt-2">
+                  {analytics.avgTenor} <span className="text-base font-normal text-mazda-charcoal">Bulan</span>
+                </p>
+              </div>
+              <span className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5 font-mono">
+                <span>💰</span> Rata-rata DP: Rp {new Intl.NumberFormat('id-ID').format(analytics.avgDP)}
+              </span>
             </div>
           </div>
-          <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex items-center justify-between">
-            <div>
-              <p className="text-xs text-mazda-steel-gray font-mazda font-bold uppercase tracking-[0.2em]">Reservasi Masuk</p>
-              <p className="text-4xl font-mazda font-bold text-green-700 mt-2">{stats.totalInquiries}</p>
+
+          {/* Charts Section 1: Kategori & Segmentasi Harga */}
+          <div className="grid gap-8 md:grid-cols-2 items-stretch">
+            {/* Grafik 1: Distribusi Kategori Armada */}
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <div>
+                    <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-mazda-burgundy block">Grafik Analisis</span>
+                    <h3 className="text-lg font-mazda font-bold text-mazda-charcoal">Distribusi Kategori Kendaraan</h3>
+                  </div>
+                  <span className="text-2xl">🏎️</span>
+                </div>
+
+                <div className="space-y-5">
+                  {analytics.categoryBreakdown.map((item, idx) => (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-semibold text-mazda-charcoal">
+                        <span>{item.name}</span>
+                        <span className="font-mono text-mazda-steel-gray">{item.count} unit ({item.percentage}%)</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden p-0.5 border border-gray-200">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-mazda-burgundy to-red-600 transition-all duration-1000"
+                          style={{ width: `${Math.max(8, item.percentage)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
+                <span>Total Armada Terdaftar: <strong>{cars.length} Unit</strong></span>
+                <span>⭐ Unit Unggulan: <strong>{stats.featuredCars}</strong></span>
+              </div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-green-50 border border-green-200 text-green-700 flex items-center justify-center text-2xl">
-              📩
+
+            {/* Grafik 2: Segmentasi Harga Supercar */}
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <div>
+                    <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-mazda-cyan block">Segmentasi Pasar</span>
+                    <h3 className="text-lg font-mazda font-bold text-mazda-charcoal">Komposisi Kelas Harga Unit</h3>
+                  </div>
+                  <span className="text-2xl">🏷️</span>
+                </div>
+
+                {/* Stacked Proportional Bar Visual */}
+                <div className="w-full h-8 rounded-xl overflow-hidden flex shadow-inner border border-gray-200 my-4">
+                  {analytics.priceTiers.map((tier, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-full bg-gradient-to-r ${tier.colorClass} transition-all duration-1000 relative group`}
+                      style={{ width: `${Math.max(12, tier.percentage)}%` }}
+                      title={`${tier.label}: ${tier.count} unit`}
+                    />
+                  ))}
+                </div>
+
+                <div className="grid gap-3.5 mt-6">
+                  {analytics.priceTiers.map((tier, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-mazda-light-gray/40 border border-mazda-border-gray/60">
+                      <div className="flex items-center gap-3">
+                        <span className="w-3.5 h-3.5 rounded-full shadow-sm flex-shrink-0" style={{ backgroundColor: tier.barHex }} />
+                        <span className="text-xs font-semibold text-mazda-charcoal">{tier.label}</span>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-mazda-charcoal bg-white px-2.5 py-1 rounded-lg border border-gray-200 shadow-2xs">
+                        {tier.count} Unit ({tier.percentage}%)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-gray-100 text-xs text-mazda-steel-gray flex items-center justify-between">
+                <span>Proporsi terbesar mendominasi strategi stok VIP Anda.</span>
+                <span className="font-semibold text-mazda-burgundy">Katalog SPPM</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts Section 2: Tren & Tipe Pengajuan Leads */}
+          <div className="grid gap-8 md:grid-cols-2 items-stretch">
+            {/* Grafik 3: Komposisi Tipe Leads */}
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <div>
+                    <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-purple-600 block">Lead Intelligence</span>
+                    <h3 className="text-lg font-mazda font-bold text-mazda-charcoal">Asal & Tipe Minat Klien VIP</h3>
+                  </div>
+                  <span className="text-2xl">🎯</span>
+                </div>
+
+                <div className="space-y-4">
+                  {analytics.leadTypes.map((type, idx) => (
+                    <div key={idx} className="p-4 rounded-2xl bg-white border border-mazda-border-gray/80 shadow-2xs">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{type.icon}</span>
+                          <span className="text-xs font-mazda font-bold text-mazda-charcoal">{type.label}</span>
+                        </div>
+                        <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-gray-100 text-mazda-charcoal border border-gray-200">
+                          {type.count} Lead ({type.percentage}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${type.color} transition-all duration-1000`}
+                          style={{ width: `${Math.max(6, type.percentage)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-gray-100 text-xs text-mazda-steel-gray">
+                Total Leads Terdaftar: <strong className="text-mazda-charcoal font-mono">{inquiries.length} Pengajuan</strong>
+              </div>
+            </div>
+
+            {/* Grafik 4: Status Penanganan & Konversi */}
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <div>
+                    <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-green-600 block">SLA & Penanganan</span>
+                    <h3 className="text-lg font-mazda font-bold text-mazda-charcoal">Status Penanganan Pesanan Masuk</h3>
+                  </div>
+                  <span className="text-2xl">⚡</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-center">
+                    <span className="block text-2xl sm:text-3xl font-mazda font-bold text-blue-700">{analytics.statusBaru}</span>
+                    <span className="block text-[11px] font-semibold uppercase text-blue-600 mt-1">Baru Masuk</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-center">
+                    <span className="block text-2xl sm:text-3xl font-mazda font-bold text-amber-700">{analytics.statusDiproses}</span>
+                    <span className="block text-[11px] font-semibold uppercase text-amber-600 mt-1">Sedang Diproses</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-green-50 border border-green-200 text-center">
+                    <span className="block text-2xl sm:text-3xl font-mazda font-bold text-green-700">{analytics.statusSelesai}</span>
+                    <span className="block text-[11px] font-semibold uppercase text-green-600 mt-1">Selesai / Deal</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-mazda-light-gray/50 border border-mazda-border-gray space-y-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-mazda-charcoal">
+                    <span>Tingkat Efektivitas Respons (SLA)</span>
+                    <span className="font-mono text-green-700 font-bold">{analytics.responseRate}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-full rounded-full transition-all duration-1000" style={{ width: `${analytics.responseRate}%` }} />
+                  </div>
+                  <p className="text-[11px] text-mazda-steel-gray font-light pt-1">
+                    * Indikator SLA menghitung persentase prospek yang telah direspons atau ditutup deal oleh tim penasihat VIP.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
+                <span>Target SLA Minimum: <strong>85%</strong></span>
+                <span className="text-green-700 font-semibold">Kinerja Optimal</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Laporan Eksekutif: Top 5 Unit Valuasi Tertinggi */}
+          <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 sm:p-9 shadow-premium">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-mazda-border-gray/60 pb-5 mb-6">
+              <div>
+                <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-mazda-burgundy block">
+                  Flagship Inventory Table
+                </span>
+                <h3 className="text-xl font-mazda font-bold text-mazda-charcoal mt-0.5">
+                  Top 5 Unit Kendaraan dengan Valuasi Tertinggi
+                </h3>
+              </div>
+              <span className="text-xs text-mazda-steel-gray font-mono bg-mazda-light-gray px-3.5 py-1.5 rounded-xl border border-mazda-border-gray/80">
+                Peringkat Berdasarkan OTR
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-mazda-border-gray text-[11px] font-mazda font-bold uppercase tracking-wider text-mazda-steel-gray">
+                    <th className="py-3.5 px-4">#</th>
+                    <th className="py-3.5 px-4">Nama Unit & Varian</th>
+                    <th className="py-3.5 px-4">Kategori</th>
+                    <th className="py-3.5 px-4">Tahun</th>
+                    <th className="py-3.5 px-4">Harga OTR (IDR)</th>
+                    <th className="py-3.5 px-4 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-mazda-border-gray/40 text-xs sm:text-sm">
+                  {analytics.topValuedCars.map((car, idx) => (
+                    <tr key={car.id} className="hover:bg-mazda-light-gray/40 transition-colors">
+                      <td className="py-4 px-4 font-mono font-bold text-mazda-burgundy">{idx + 1}</td>
+                      <td className="py-4 px-4 font-mazda font-bold text-mazda-charcoal">
+                        {car.name} <span className="text-mazda-steel-gray font-normal">({car.model})</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="px-2.5 py-1 rounded-lg bg-gray-100 text-mazda-charcoal text-xs font-semibold border border-gray-200">
+                          {car.category || 'Sports Car'}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 font-mono text-mazda-charcoal">{car.year}</td>
+                      <td className="py-4 px-4 font-mono font-bold text-mazda-charcoal">
+                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(car.price)}
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        {car.isFeatured ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-mazda-burgundy/10 text-mazda-burgundy text-[11px] font-bold border border-mazda-burgundy/20">
+                            ⭐ Unggulan
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[11px] font-medium border border-gray-200">
+                            Reguler
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-
-        {/* Main Grid Layout */}
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] items-start">
-          {/* Add Car Form */}
-          <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 sm:p-9 shadow-premium">
-            <div className="border-b border-mazda-border-gray/60 pb-4 mb-6">
-              <span className="text-xs uppercase tracking-[0.25em] text-mazda-burgundy font-mazda font-bold">
-                Katalog Unit
-              </span>
-              <h2 className="text-2xl font-mazda font-bold text-mazda-charcoal mt-1">Tambah Kendaraan Baru</h2>
+      ) : (
+        /* =========================================================================
+         * 🏎️ TAB OPERASIONAL & RESERVASI (DEFAULT)
+         * ========================================================================= */
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 space-y-10 animate-fade-in">
+          {/* Stats Grid */}
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex items-center justify-between">
+              <div>
+                <p className="text-xs text-mazda-steel-gray font-mazda font-bold uppercase tracking-[0.2em]">Total Armada</p>
+                <p className="text-4xl font-mazda font-bold text-mazda-burgundy mt-2">{stats.totalCars}</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-mazda-burgundy/10 text-mazda-burgundy flex items-center justify-center text-2xl">
+                🏎️
+              </div>
             </div>
-
-            <form onSubmit={handleAddCar} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Nama Unit</label>
-                  <input value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" placeholder="Contoh: Ferrari F8" required />
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Model / Varian</label>
-                  <input value={formData.model} onChange={(event) => setFormData({ ...formData, model: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" placeholder="Contoh: Tributo" required />
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Harga OTR (IDR)</label>
-                  <input type="number" value={formData.price} onChange={(event) => setFormData({ ...formData, price: Number(event.target.value) })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm font-bold text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all" required />
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Tahun Produksi</label>
-                  <input type="number" value={formData.year} onChange={(event) => setFormData({ ...formData, year: Number(event.target.value) })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm font-bold text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all" required />
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Kategori</label>
-                  <input value={formData.category} onChange={(event) => setFormData({ ...formData, category: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" />
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Warna Eksterior</label>
-                  <input value={formData.color} onChange={(event) => setFormData({ ...formData, color: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" />
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Transmisi</label>
-                  <select value={formData.transmission} onChange={(event) => setFormData({ ...formData, transmission: event.target.value as 'Automatic' | 'Manual' })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm font-semibold text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all">
-                    <option value="Automatic">Automatic</option>
-                    <option value="Manual">Manual</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Bahan Bakar</label>
-                  <select value={formData.fuel} onChange={(event) => setFormData({ ...formData, fuel: event.target.value as 'Petrol' | 'Diesel' | 'Hybrid' | 'Electric' })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm font-semibold text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all">
-                    <option value="Petrol">Petrol</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="Hybrid">Hybrid</option>
-                    <option value="Electric">Electric</option>
-                  </select>
-                </div>
-              </div>
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex items-center justify-between">
               <div>
-                <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Deskripsi Singkat</label>
-                <textarea value={formData.description} onChange={(event) => setFormData({ ...formData, description: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all min-h-[90px] font-medium leading-relaxed" />
+                <p className="text-xs text-mazda-steel-gray font-mazda font-bold uppercase tracking-[0.2em]">Sorotan Utama (Featured)</p>
+                <p className="text-4xl font-mazda font-bold text-mazda-charcoal mt-2">{stats.featuredCars}</p>
               </div>
+              <div className="w-12 h-12 rounded-2xl bg-mazda-burgundy/10 text-mazda-burgundy flex items-center justify-center text-2xl">
+                ⭐
+              </div>
+            </div>
+            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex items-center justify-between">
               <div>
-                <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Fitur Unggulan (Pisahkan dengan koma)</label>
-                <input value={formData.features} onChange={(event) => setFormData({ ...formData, features: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" placeholder="Carbon Ceramic Brakes, JBL Sound, Lift Kit" />
+                <p className="text-xs text-mazda-steel-gray font-mazda font-bold uppercase tracking-[0.2em]">Reservasi Masuk</p>
+                <p className="text-4xl font-mazda font-bold text-green-700 mt-2">{stats.totalInquiries}</p>
               </div>
-              <div className="flex items-center gap-3 pt-3 pb-1">
-                <input type="checkbox" id="featured" checked={formData.isFeatured} onChange={(event) => setFormData({ ...formData, isFeatured: event.target.checked })} className="w-5 h-5 rounded border-gray-300 text-mazda-burgundy focus:ring-mazda-burgundy cursor-pointer" />
-                <label htmlFor="featured" className="text-sm font-bold text-mazda-charcoal cursor-pointer">Jadikan Sorotan Utama (Featured Supercar)</label>
+              <div className="w-12 h-12 rounded-2xl bg-green-50 border border-green-200 text-green-700 flex items-center justify-center text-2xl">
+                📩
               </div>
-              <Button type="submit" variant="primary" size="lg" className="w-full shadow-glow py-4">Simpan ke Katalog SPPM</Button>
-            </form>
+            </div>
           </div>
 
-          {/* Right Column - Lists */}
-          <div className="space-y-8">
-            {/* Car List */}
+          {/* Main Grid Layout */}
+          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] items-start">
+            {/* Add Car Form */}
             <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 sm:p-9 shadow-premium">
               <div className="border-b border-mazda-border-gray/60 pb-4 mb-6">
                 <span className="text-xs uppercase tracking-[0.25em] text-mazda-burgundy font-mazda font-bold">
-                  Daftar Armada
+                  Katalog Unit
                 </span>
-                <h2 className="text-2xl font-mazda font-bold text-mazda-charcoal mt-1">Inventaris Aktif</h2>
+                <h2 className="text-2xl font-mazda font-bold text-mazda-charcoal mt-1">Tambah Kendaraan Baru</h2>
               </div>
-              <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-2">
-                {cars.length === 0 ? (
-                  <p className="text-mazda-steel-gray text-center py-10 text-sm">Belum ada armada terdaftar.</p>
-                ) : (
-                  cars.map((car) => (
-                    <div key={car.id} className="rounded-2xl border border-mazda-border-gray/80 bg-mazda-light-gray/30 p-4 hover:bg-white hover:border-mazda-burgundy/40 hover:shadow-md transition-all duration-300">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-mazda font-bold text-mazda-charcoal text-base">{car.name}</h3>
-                            {car.isFeatured && (
-                              <span className="bg-mazda-burgundy text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                FEATURED
-                              </span>
-                            )}
+
+              <form onSubmit={handleAddCar} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Nama Unit</label>
+                    <input value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" placeholder="Contoh: Ferrari F8" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Model / Varian</label>
+                    <input value={formData.model} onChange={(event) => setFormData({ ...formData, model: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" placeholder="Contoh: Tributo" required />
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Harga OTR (IDR)</label>
+                    <input type="number" value={formData.price} onChange={(event) => setFormData({ ...formData, price: Number(event.target.value) })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm font-bold text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Tahun Produksi</label>
+                    <input type="number" value={formData.year} onChange={(event) => setFormData({ ...formData, year: Number(event.target.value) })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm font-bold text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all" required />
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Kategori</label>
+                    <input value={formData.category} onChange={(event) => setFormData({ ...formData, category: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Warna Eksterior</label>
+                    <input value={formData.color} onChange={(event) => setFormData({ ...formData, color: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" />
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Transmisi</label>
+                    <select value={formData.transmission} onChange={(event) => setFormData({ ...formData, transmission: event.target.value as 'Automatic' | 'Manual' })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm font-semibold text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all">
+                      <option value="Automatic">Automatic</option>
+                      <option value="Manual">Manual</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Bahan Bakar</label>
+                    <select value={formData.fuel} onChange={(event) => setFormData({ ...formData, fuel: event.target.value as 'Petrol' | 'Diesel' | 'Hybrid' | 'Electric' })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm font-semibold text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all">
+                      <option value="Petrol">Petrol</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="Hybrid">Hybrid</option>
+                      <option value="Electric">Electric</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Jarak Tempuh</label>
+                    <input type="number" value={formData.mileage} onChange={(event) => setFormData({ ...formData, mileage: Number(event.target.value) })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">URL Gambar / Foto</label>
+                    <input value={formData.image} onChange={(event) => setFormData({ ...formData, image: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Fitur Unggulan</label>
+                  <input value={formData.features} onChange={(event) => setFormData({ ...formData, features: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium" placeholder="Carbon Ceramic Brakes, Carbon Steering, Titanium Exhaust (pisahkan dengan koma)" />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-mazda-charcoal mb-2">Deskripsi Eksklusif</label>
+                  <textarea value={formData.description} onChange={(event) => setFormData({ ...formData, description: event.target.value })} className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3 text-sm text-mazda-charcoal outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all min-h-[110px] font-medium leading-relaxed" placeholder="Jelaskan sejarah unit, keistimewaan performa, dan jaminan sertifikasi resmi." />
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <input id="isFeatured" type="checkbox" checked={formData.isFeatured} onChange={(event) => setFormData({ ...formData, isFeatured: event.target.checked })} className="h-5 w-5 rounded border-mazda-border-gray text-mazda-burgundy focus:ring-mazda-burgundy cursor-pointer" />
+                  <label htmlFor="isFeatured" className="text-xs uppercase tracking-wider font-bold text-mazda-charcoal cursor-pointer">
+                    Jadikan Unit Unggulan (Tampil di Halaman Depan & Featured Carousel)
+                  </label>
+                </div>
+                <Button type="submit" className="w-full rounded-xl bg-mazda-burgundy hover:bg-[#800A27] text-white py-4 text-sm font-mazda font-bold uppercase tracking-wider shadow-lg hover:shadow-xl transition-all cursor-pointer mt-4">
+                  + Simpan & Terbitkan Unit ke Katalog
+                </Button>
+              </form>
+            </div>
+
+            {/* Catalog List & Inquiries */}
+            <div className="space-y-8">
+              {/* Car List */}
+              <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium">
+                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <div>
+                    <span className="text-xs uppercase tracking-[0.25em] text-mazda-burgundy font-mazda font-bold">
+                      Inventaris Aktif
+                    </span>
+                    <h2 className="text-2xl font-mazda font-bold text-mazda-charcoal mt-1">Daftar Kendaraan</h2>
+                  </div>
+                  <span className="text-xs text-mazda-steel-gray font-semibold bg-mazda-light-gray px-3 py-1.5 rounded-full">
+                    {cars.length} Unit
+                  </span>
+                </div>
+
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                  {cars.length === 0 ? (
+                    <p className="text-mazda-steel-gray text-center py-10 text-sm">Belum ada kendaraan dalam inventaris.</p>
+                  ) : (
+                    cars.map((car) => (
+                      <div key={car.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-mazda-border-gray/80 bg-mazda-light-gray/30 p-4 hover:bg-white hover:border-mazda-burgundy/40 transition-all duration-300">
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-12 rounded-xl bg-gray-200 overflow-hidden relative flex-shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={car.image} alt={car.name} className="w-full h-full object-cover" />
                           </div>
-                          <p className="text-xs text-mazda-steel-gray mt-1 font-medium">{car.model} • {car.category} • {car.year}</p>
-                          <p className="text-xs font-bold text-mazda-burgundy mt-1.5">
-                            Rp {new Intl.NumberFormat('id-ID').format(car.price)}
-                          </p>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-mazda font-bold text-mazda-charcoal text-base">{car.name}</h3>
+                              {car.isFeatured && (
+                                <span className="bg-mazda-burgundy text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                  Unggulan
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-mazda-steel-gray font-medium mt-0.5">{car.model} • {car.year}</p>
+                            <p className="text-sm font-mono font-bold text-mazda-burgundy mt-1">
+                              {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(car.price)}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex gap-2 flex-shrink-0">
+
+                        <div className="flex items-center gap-2 self-end sm:self-auto">
                           <button
                             type="button"
                             onClick={() => handleToggleFeatured(car.id)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${
+                            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                               car.isFeatured
-                                ? 'bg-mazda-burgundy text-white border-mazda-burgundy shadow-sm'
-                                : 'bg-white text-mazda-charcoal border-mazda-border-gray hover:border-mazda-burgundy'
+                                ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
-                            title="Toggle Featured"
                           >
-                            {car.isFeatured ? '★ VIP' : '☆ Sorot'}
+                            {car.isFeatured ? '⭐ Featured' : '☆ Set Featured'}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteCar(car.id)}
-                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white transition-colors"
-                            title="Hapus"
+                            className="px-3 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold transition-all cursor-pointer"
                           >
-                            ✕
+                            🗑️ Hapus
                           </button>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Inquiries List */}
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 sm:p-9 shadow-premium">
-              <div className="border-b border-mazda-border-gray/60 pb-4 mb-6">
-                <span className="text-xs uppercase tracking-[0.25em] text-mazda-burgundy font-mazda font-bold">
-                  Pesan Masuk
-                </span>
-                <h2 className="text-2xl font-mazda font-bold text-mazda-charcoal mt-1">Reservasi Konsultasi VIP</h2>
-              </div>
-              <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-2">
-                {inquiries.length === 0 ? (
-                  <p className="text-mazda-steel-gray text-center py-10 text-sm">Belum ada reservasi masuk.</p>
-                ) : (
-                  inquiries.map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-mazda-border-gray/80 bg-mazda-light-gray/30 p-4 hover:bg-white hover:border-mazda-burgundy/40 hover:shadow-md transition-all duration-300">
-                      <div className="flex items-start justify-between gap-4 mb-2">
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-mazda font-bold text-mazda-charcoal text-base">{item.name}</h3>
-                            {item.type && (
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                item.type === 'Simulation'
-                                  ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                                  : item.type === 'CustomBuild'
-                                  ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                                  : 'bg-gray-200 text-gray-700'
-                              }`}>
-                                {item.type === 'Simulation' ? '📊 SIMULASI LEAD' : item.type === 'CustomBuild' ? '🛠️ CUSTOM BUILD' : 'LEAD UMUM'}
-                              </span>
-                            )}
+              {/* Inquiries */}
+              <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium">
+                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <div>
+                    <span className="text-xs uppercase tracking-[0.25em] text-mazda-burgundy font-mazda font-bold">
+                      Pesan & Leads
+                    </span>
+                    <h2 className="text-2xl font-mazda font-bold text-mazda-charcoal mt-1">Reservasi Konsultasi VIP</h2>
+                  </div>
+                  <span className="text-xs text-green-700 font-semibold bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                    {inquiries.length} Pesan
+                  </span>
+                </div>
+
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                  {inquiries.length === 0 ? (
+                    <p className="text-mazda-steel-gray text-center py-10 text-sm">Belum ada reservasi masuk.</p>
+                  ) : (
+                    inquiries.map((item) => (
+                      <div key={item.id} className="rounded-2xl border border-mazda-border-gray/80 bg-mazda-light-gray/30 p-4 hover:bg-white hover:border-mazda-burgundy/40 hover:shadow-md transition-all duration-300">
+                        <div className="flex items-start justify-between gap-4 mb-2">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-mazda font-bold text-mazda-charcoal text-base">{item.name}</h3>
+                              {item.type && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                  item.type === 'Simulation'
+                                    ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                    : item.type === 'CustomBuild'
+                                    ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                    : 'bg-gray-200 text-gray-700'
+                                }`}>
+                                  {item.type === 'Simulation' ? '📊 SIMULASI LEAD' : item.type === 'CustomBuild' ? '🛠️ CUSTOM BUILD' : 'LEAD UMUM'}
+                                </span>
+                              )}
+                            </div>
+                            <span className="inline-block text-xs font-bold text-mazda-burgundy bg-mazda-burgundy/10 px-2 py-0.5 rounded-md mt-1">
+                              {item.carName ?? 'Konsultasi umum'}
+                            </span>
                           </div>
-                          <span className="inline-block text-xs font-bold text-mazda-burgundy bg-mazda-burgundy/10 px-2 py-0.5 rounded-md mt-1">
-                            {item.carName ?? 'Konsultasi umum'}
-                          </span>
+                          <select
+                            value={item.status}
+                            onChange={(event) => handleStatusChange(item.id, event.target.value as Inquiry['status'])}
+                            className={`rounded-xl px-3 py-1.5 text-xs font-bold border outline-none cursor-pointer ${
+                              item.status === 'Baru'
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : item.status === 'Diproses'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-green-50 text-green-700 border-green-200'
+                            }`}
+                          >
+                            <option value="Baru">Baru</option>
+                            <option value="Diproses">Diproses</option>
+                            <option value="Selesai">Selesai</option>
+                          </select>
                         </div>
-                        <select
-                          value={item.status}
-                          onChange={(event) => handleStatusChange(item.id, event.target.value as Inquiry['status'])}
-                          className={`rounded-xl px-3 py-1.5 text-xs font-bold border outline-none cursor-pointer ${
-                            item.status === 'Baru'
-                              ? 'bg-blue-50 text-blue-700 border-blue-200'
-                              : item.status === 'Diproses'
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : 'bg-green-50 text-green-700 border-green-200'
-                          }`}
-                        >
-                          <option value="Baru">Baru</option>
-                          <option value="Diproses">Diproses</option>
-                          <option value="Selesai">Selesai</option>
-                        </select>
+
+                        {item.simulationDetails && (
+                          <div className="mb-2 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div>
+                              <span className="block text-[10px] text-blue-600 font-semibold uppercase">DP Pilihan</span>
+                              <strong className="font-mono">Rp {new Intl.NumberFormat('id-ID').format(item.simulationDetails.downPayment)}</strong>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] text-blue-600 font-semibold uppercase">Tenor</span>
+                              <strong className="font-mono">{item.simulationDetails.tenor} Bln</strong>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] text-blue-600 font-semibold uppercase">Bunga</span>
+                              <strong className="font-mono">{item.simulationDetails.interestRate}%/thn</strong>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] text-blue-600 font-semibold uppercase">Cicilan/Bulan</span>
+                              <strong className="font-mono text-mazda-burgundy">Rp {new Intl.NumberFormat('id-ID').format(item.simulationDetails.monthlyInstallment)}</strong>
+                            </div>
+                          </div>
+                        )}
+
+                        {item.customSpecs && (
+                          <div className="mb-2 p-2.5 rounded-xl bg-purple-50/70 border border-purple-200 text-xs text-purple-900 flex flex-wrap gap-x-4 gap-y-1">
+                            {item.customSpecs.color && <span>🎨 Warna: <strong>{item.customSpecs.color}</strong></span>}
+                            {item.customSpecs.trim && <span>🏁 Trim: <strong>{item.customSpecs.trim}</strong></span>}
+                            {item.customSpecs.exteriorOption && <span>✨ Eksterior: <strong>{item.customSpecs.exteriorOption}</strong></span>}
+                          </div>
+                        )}
+
+                        <p className="text-xs text-mazda-charcoal mb-2 line-clamp-2 bg-white p-2.5 rounded-xl border border-mazda-border-gray/60 font-light">
+                          &ldquo;{item.message}&rdquo;
+                        </p>
+                        <div className="flex flex-wrap items-center justify-between text-[11px] text-mazda-steel-gray font-medium pt-1">
+                          <span>📧 {item.email}</span>
+                          <span>📞 {item.phone}</span>
+                          {item.budget && <span className="text-mazda-burgundy font-bold">💰 {item.budget}</span>}
+                        </div>
                       </div>
-
-                      {item.simulationDetails && (
-                        <div className="mb-2 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          <div>
-                            <span className="block text-[10px] text-blue-600 font-semibold uppercase">DP Pilihan</span>
-                            <strong className="font-mono">Rp {new Intl.NumberFormat('id-ID').format(item.simulationDetails.downPayment)}</strong>
-                          </div>
-                          <div>
-                            <span className="block text-[10px] text-blue-600 font-semibold uppercase">Tenor</span>
-                            <strong className="font-mono">{item.simulationDetails.tenor} Bln</strong>
-                          </div>
-                          <div>
-                            <span className="block text-[10px] text-blue-600 font-semibold uppercase">Bunga</span>
-                            <strong className="font-mono">{item.simulationDetails.interestRate}%/thn</strong>
-                          </div>
-                          <div>
-                            <span className="block text-[10px] text-blue-600 font-semibold uppercase">Cicilan/Bulan</span>
-                            <strong className="font-mono text-mazda-burgundy">Rp {new Intl.NumberFormat('id-ID').format(item.simulationDetails.monthlyInstallment)}</strong>
-                          </div>
-                        </div>
-                      )}
-
-                      {item.customSpecs && (
-                        <div className="mb-2 p-2.5 rounded-xl bg-purple-50/70 border border-purple-200 text-xs text-purple-900 flex flex-wrap gap-x-4 gap-y-1">
-                          {item.customSpecs.color && <span>🎨 Warna: <strong>{item.customSpecs.color}</strong></span>}
-                          {item.customSpecs.trim && <span>🏁 Trim: <strong>{item.customSpecs.trim}</strong></span>}
-                          {item.customSpecs.exteriorOption && <span>✨ Eksterior: <strong>{item.customSpecs.exteriorOption}</strong></span>}
-                        </div>
-                      )}
-
-                      <p className="text-xs text-mazda-charcoal mb-2 line-clamp-2 bg-white p-2.5 rounded-xl border border-mazda-border-gray/60 font-light">
-                        &ldquo;{item.message}&rdquo;
-                      </p>
-                      <div className="flex flex-wrap items-center justify-between text-[11px] text-mazda-steel-gray font-medium pt-1">
-                        <span>📧 {item.email}</span>
-                        <span>📞 {item.phone}</span>
-                        {item.budget && <span className="text-mazda-burgundy font-bold">💰 {item.budget}</span>}
-                      </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
