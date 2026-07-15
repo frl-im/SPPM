@@ -448,7 +448,20 @@ export default function AdminPage() {
                     <div key={item.id} className="rounded-2xl border border-mazda-border-gray/80 bg-mazda-light-gray/30 p-4 hover:bg-white hover:border-mazda-burgundy/40 hover:shadow-md transition-all duration-300">
                       <div className="flex items-start justify-between gap-4 mb-2">
                         <div>
-                          <h3 className="font-mazda font-bold text-mazda-charcoal text-base">{item.name}</h3>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-mazda font-bold text-mazda-charcoal text-base">{item.name}</h3>
+                            {item.type && (
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                item.type === 'Simulation'
+                                  ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                  : item.type === 'CustomBuild'
+                                  ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                  : 'bg-gray-200 text-gray-700'
+                              }`}>
+                                {item.type === 'Simulation' ? '📊 SIMULASI LEAD' : item.type === 'CustomBuild' ? '🛠️ CUSTOM BUILD' : 'LEAD UMUM'}
+                              </span>
+                            )}
+                          </div>
                           <span className="inline-block text-xs font-bold text-mazda-burgundy bg-mazda-burgundy/10 px-2 py-0.5 rounded-md mt-1">
                             {item.carName ?? 'Konsultasi umum'}
                           </span>
@@ -469,6 +482,36 @@ export default function AdminPage() {
                           <option value="Selesai">Selesai</option>
                         </select>
                       </div>
+
+                      {item.simulationDetails && (
+                        <div className="mb-2 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <div>
+                            <span className="block text-[10px] text-blue-600 font-semibold uppercase">DP Pilihan</span>
+                            <strong className="font-mono">Rp {new Intl.NumberFormat('id-ID').format(item.simulationDetails.downPayment)}</strong>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] text-blue-600 font-semibold uppercase">Tenor</span>
+                            <strong className="font-mono">{item.simulationDetails.tenor} Bln</strong>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] text-blue-600 font-semibold uppercase">Bunga</span>
+                            <strong className="font-mono">{item.simulationDetails.interestRate}%/thn</strong>
+                          </div>
+                          <div>
+                            <span className="block text-[10px] text-blue-600 font-semibold uppercase">Cicilan/Bulan</span>
+                            <strong className="font-mono text-mazda-burgundy">Rp {new Intl.NumberFormat('id-ID').format(item.simulationDetails.monthlyInstallment)}</strong>
+                          </div>
+                        </div>
+                      )}
+
+                      {item.customSpecs && (
+                        <div className="mb-2 p-2.5 rounded-xl bg-purple-50/70 border border-purple-200 text-xs text-purple-900 flex flex-wrap gap-x-4 gap-y-1">
+                          {item.customSpecs.color && <span>🎨 Warna: <strong>{item.customSpecs.color}</strong></span>}
+                          {item.customSpecs.trim && <span>🏁 Trim: <strong>{item.customSpecs.trim}</strong></span>}
+                          {item.customSpecs.exteriorOption && <span>✨ Eksterior: <strong>{item.customSpecs.exteriorOption}</strong></span>}
+                        </div>
+                      )}
+
                       <p className="text-xs text-mazda-charcoal mb-2 line-clamp-2 bg-white p-2.5 rounded-xl border border-mazda-border-gray/60 font-light">
                         &ldquo;{item.message}&rdquo;
                       </p>

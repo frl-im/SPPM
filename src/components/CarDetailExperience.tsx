@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
-import { Car, CarColorOption } from '@/types/car'
+import { Car, CarColorOption, Inquiry } from '@/types/car'
+import { getStoredInquiries, saveInquiries } from '@/lib/storage'
 
 const AnimationStyles = () => (
   <style>{`
@@ -203,6 +204,59 @@ export function CarDetailExperience({ car }: CarDetailExperienceProps) {
   const handleSelectColor = (option: CarColorOption) => {
     setSelectedColor(option)
     setAnimationTrigger((prev) => prev + 1)
+  }
+
+  const [leadName, setLeadName] = useState<string>('')
+  const [leadEmail, setLeadEmail] = useState<string>('')
+  const [leadPhone, setLeadPhone] = useState<string>('')
+  const [leadMessage, setLeadMessage] = useState<string>('')
+  const [leadSubmitted, setLeadSubmitted] = useState<boolean>(false)
+  const [leadError, setLeadError] = useState<string>('')
+
+  const handleLeadSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setLeadError('')
+
+    if (!leadName || !leadEmail || !leadPhone) {
+      setLeadError('Silakan lengkapi Nama, Email, dan Nomor WhatsApp/Telepon Anda.')
+      return
+    }
+
+    const inquiry: Inquiry = {
+      id: Date.now().toString(),
+      carId: car.id,
+      carName: `${car.name} ${car.model} (${selectedTrim}) • ${selectedColor.name}`,
+      name: leadName,
+      email: leadEmail,
+      phone: leadPhone,
+      budget: `DP Rp ${new Intl.NumberFormat('id-ID').format(downPayment)} (${Math.round((downPayment / car.price) * 100)}%) / Tenor ${tenor} Bln / Cicilan Rp ${new Intl.NumberFormat('id-ID').format(installment.monthly)}/bln`,
+      message: leadMessage || `Permintaan resmi hasil simulasi cicilan dan spesifikasi khusus untuk ${car.name} ${car.model} (${selectedTrim}) warna ${selectedColor.name}.`,
+      type: 'Simulation',
+      simulationDetails: {
+        downPayment,
+        tenor,
+        interestRate,
+        monthlyInstallment: installment.monthly,
+        totalPrice: installment.total,
+      },
+      customSpecs: {
+        color: selectedColor.name,
+        trim: selectedTrim,
+        exteriorOption: feelsTab === 'EXTERIOR' ? 'Paket Eksterior Unggulan' : 'Standar',
+        interiorOption: 'Kulit Premium Nappa / Alcantara',
+        accessories: ['JBL Pro Sound System', 'Carbon Ceramic Brakes'],
+      },
+      createdAt: new Date().toISOString(),
+      status: 'Baru',
+    }
+
+    const existing = getStoredInquiries()
+    saveInquiries([inquiry, ...existing])
+    setLeadSubmitted(true)
+    setLeadName('')
+    setLeadEmail('')
+    setLeadPhone('')
+    setLeadMessage('')
   }
 
   const subNavs = ['HIGHLIGHT', 'DESIGN', 'GALLERY', 'FEELS', 'SPECS', 'ACCESSORIES']
@@ -624,6 +678,99 @@ export function CarDetailExperience({ car }: CarDetailExperienceProps) {
                 <p className="text-xl sm:text-2xl font-mazda font-bold text-white tracking-tight break-all sm:break-normal">
                   {formatCurrency(installment.total)}
                 </p>
+              </div>
+            </div>
+
+            {/* Native Lead Capture Form inside Modal */}
+            <div className="relative z-10 mt-8 pt-6 border-t border-white/15">
+              <div className="rounded-2xl bg-white/5 border border-white/15 p-6 sm:p-7">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div>
+                    <span className="text-[11px] uppercase tracking-widest text-mazda-cyan font-mazda font-bold">
+                      Form Resmi Pengajuan Leads
+                    </span>
+                    <h4 className="text-lg font-mazda font-bold text-white mt-0.5">
+                      Kirim Spesifikasi & Hasil Simulasi ke Penasihat SPPM
+                    </h4>
+                  </div>
+                  <span className="text-2xl">📝</span>
+                </div>
+
+                {leadSubmitted ? (
+                  <div className="rounded-xl bg-green-500/10 border border-green-500/30 p-5 text-green-300 flex items-start gap-3 animate-scale-in">
+                    <span className="text-2xl">🎉</span>
+                    <div>
+                      <p className="font-mazda font-bold text-white text-base">Hasil Simulasi & Spesifikasi Berhasil Terkirim!</p>
+                      <p className="text-xs text-gray-300 mt-1 leading-relaxed">
+                        Data kontak Anda beserta kalkulasi DP Rp {new Intl.NumberFormat('id-ID').format(downPayment)} dan tenor {tenor} bulan untuk {car.name} ({selectedTrim}) telah tersimpan dalam basis data sebagai lead prioritas. Tim penasihat VIP kami akan segera menghubungi Anda.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleLeadSubmit} className="space-y-4 mt-2">
+                    {leadError && (
+                      <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3.5 text-red-300 text-xs flex items-center gap-2">
+                        <span>⚠️</span>
+                        <span>{leadError}</span>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-[11px] uppercase tracking-wider text-gray-300 mb-1.5 font-mazda">Nama Lengkap *</label>
+                        <input
+                          type="text"
+                          value={leadName}
+                          onChange={(e) => setLeadName(e.target.value)}
+                          placeholder="Contoh: Arief Budiman"
+                          className="w-full rounded-xl bg-white/5 border border-white/15 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-mazda-cyan transition-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] uppercase tracking-wider text-gray-300 mb-1.5 font-mazda">Email *</label>
+                        <input
+                          type="email"
+                          value={leadEmail}
+                          onChange={(e) => setLeadEmail(e.target.value)}
+                          placeholder="arief@domain.com"
+                          className="w-full rounded-xl bg-white/5 border border-white/15 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-mazda-cyan transition-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] uppercase tracking-wider text-gray-300 mb-1.5 font-mazda">No. WhatsApp *</label>
+                        <input
+                          type="tel"
+                          value={leadPhone}
+                          onChange={(e) => setLeadPhone(e.target.value)}
+                          placeholder="0812 3456 7890"
+                          className="w-full rounded-xl bg-white/5 border border-white/15 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-mazda-cyan transition-all"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-gray-300 mb-1.5 font-mazda">Deskripsi / Catatan Pesanan Custom</label>
+                      <textarea
+                        value={leadMessage}
+                        onChange={(e) => setLeadMessage(e.target.value)}
+                        placeholder={`Spesifikasi Terpilih: ${car.name} (${selectedTrim}), Warna ${selectedColor.name}. Tambahkan catatan custom seperti jadwal test drive atau pertanyaan leasing...`}
+                        className="w-full rounded-xl bg-white/5 border border-white/15 px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-mazda-cyan transition-all min-h-[80px]"
+                      />
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                      <span className="text-[11px] text-gray-400 font-light">
+                        ℹ️ Angka simulasi & spesifikasi otomatis terlampir ke basis data.
+                      </span>
+                      <button
+                        type="submit"
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-mazda-cyan to-[#0088CC] text-[#1A1A1A] font-mazda font-bold text-xs shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                      >
+                        🚀 Kirim Spesifikasi & Simulasi ke Basis Data
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
 

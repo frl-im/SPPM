@@ -16,6 +16,10 @@ const getInitialForm = () => ({
   phone: '',
   budget: '',
   message: '',
+  color: '',
+  trim: 'Pro Autoexe',
+  dp: '',
+  tenor: '36',
 })
 
 export function BookingForm({ car, cars }: BookingFormProps) {
@@ -41,15 +45,34 @@ export function BookingForm({ car, cars }: BookingFormProps) {
     }
 
     const selectedCar = resolvedCars.find((item) => item.id === selectedCarId)
+    const dpNum = Number(formData.dp.replace(/[^0-9]/g, '')) || (selectedCar ? selectedCar.price * 0.2 : 0)
+    const tenorNum = Number(formData.tenor) || 36
+    const interestNum = 3.5
+    const financed = selectedCar ? Math.max(0, selectedCar.price - dpNum) : 0
+    const monthlyNum = financed > 0 ? (financed + (financed * (interestNum / 100) * (tenorNum / 12))) / tenorNum : 0
+
     const inquiry: Inquiry = {
       id: Date.now().toString(),
       carId: selectedCar?.id,
-      carName: selectedCar?.name ?? 'Konsultasi umum',
+      carName: selectedCar ? `${selectedCar.name} ${selectedCar.model}` : 'Konsultasi umum / Custom Build',
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
-      budget: formData.budget,
+      budget: formData.budget || (dpNum > 0 ? `DP Rp ${new Intl.NumberFormat('id-ID').format(dpNum)} • Tenor ${tenorNum} Bulan` : undefined),
       message: formData.message,
+      type: formData.color || formData.dp ? 'CustomBuild' : 'General',
+      customSpecs: formData.color || formData.trim ? {
+        color: formData.color || 'Standar Pabrik',
+        trim: formData.trim,
+        exteriorOption: 'Paket Eksterior Unggulan',
+      } : undefined,
+      simulationDetails: dpNum > 0 ? {
+        downPayment: dpNum,
+        tenor: tenorNum,
+        interestRate: interestNum,
+        monthlyInstallment: monthlyNum,
+        totalPrice: selectedCar?.price || 0,
+      } : undefined,
       createdAt: new Date().toISOString(),
       status: 'Baru',
     }
@@ -133,6 +156,80 @@ export function BookingForm({ car, cars }: BookingFormProps) {
             className="w-full rounded-xl border border-mazda-border-gray bg-mazda-light-gray/40 px-4 py-3.5 text-sm text-mazda-charcoal placeholder-mazda-steel-gray outline-none focus:bg-white focus:border-mazda-burgundy focus:ring-4 focus:ring-mazda-burgundy/10 transition-all font-medium"
             placeholder="Contoh: Rp 2.5 Miliar / DP Rp 500 Juta"
           />
+        </div>
+      </div>
+
+      {/* Native Custom Specification & Simulation Section */}
+      <div className="rounded-2xl border border-mazda-border-gray/80 bg-mazda-light-gray/30 p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-3">
+          <div>
+            <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-mazda-burgundy block">
+              Native Lead Capture
+            </span>
+            <h4 className="text-sm font-mazda font-bold text-mazda-charcoal">
+              Spesifikasi Custom & Hasil Simulasi (Opsional)
+            </h4>
+          </div>
+          <span className="text-lg">🛠️</span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-xs font-semibold text-mazda-charcoal mb-1.5">
+              Warna Custom / Cat Eksklusif
+            </label>
+            <input
+              value={formData.color}
+              onChange={(event) => setFormData({ ...formData, color: event.target.value })}
+              className="w-full rounded-xl border border-mazda-border-gray bg-white px-3.5 py-2.5 text-sm text-mazda-charcoal placeholder-mazda-steel-gray outline-none focus:border-mazda-burgundy transition-all"
+              placeholder="Contoh: Soul Red Crystal / Jet Black"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-mazda-charcoal mb-1.5">
+              Grade / Trim Pilihan
+            </label>
+            <select
+              value={formData.trim}
+              onChange={(event) => setFormData({ ...formData, trim: event.target.value })}
+              className="w-full rounded-xl border border-mazda-border-gray bg-white px-3.5 py-2.5 text-sm text-mazda-charcoal outline-none focus:border-mazda-burgundy transition-all cursor-pointer"
+            >
+              <option value="Pro Autoexe">Pro Autoexe</option>
+              <option value="Touring Sport">Touring Sport</option>
+              <option value="Kuro Edition">Kuro Edition</option>
+              <option value="Bespoke Custom">Bespoke Custom</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-xs font-semibold text-mazda-charcoal mb-1.5">
+              Rencana Uang Muka (DP Simulasi)
+            </label>
+            <input
+              value={formData.dp}
+              onChange={(event) => setFormData({ ...formData, dp: event.target.value })}
+              className="w-full rounded-xl border border-mazda-border-gray bg-white px-3.5 py-2.5 text-sm text-mazda-charcoal placeholder-mazda-steel-gray outline-none focus:border-mazda-burgundy transition-all"
+              placeholder="Contoh: 500000000"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-mazda-charcoal mb-1.5">
+              Tenor Cicilan Pilihan
+            </label>
+            <select
+              value={formData.tenor}
+              onChange={(event) => setFormData({ ...formData, tenor: event.target.value })}
+              className="w-full rounded-xl border border-mazda-border-gray bg-white px-3.5 py-2.5 text-sm text-mazda-charcoal outline-none focus:border-mazda-burgundy transition-all cursor-pointer"
+            >
+              <option value="12">12 Bulan (1 Tahun)</option>
+              <option value="24">24 Bulan (2 Tahun)</option>
+              <option value="36">36 Bulan (3 Tahun)</option>
+              <option value="48">48 Bulan (4 Tahun)</option>
+              <option value="60">60 Bulan (5 Tahun)</option>
+            </select>
+          </div>
         </div>
       </div>
 

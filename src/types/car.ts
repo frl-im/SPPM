@@ -32,6 +32,21 @@ export interface Inquiry {
   phone: string
   budget?: string
   message: string
+  type?: 'General' | 'Simulation' | 'CustomBuild' | 'TestDrive'
+  simulationDetails?: {
+    downPayment: number
+    tenor: number
+    interestRate: number
+    monthlyInstallment: number
+    totalPrice: number
+  }
+  customSpecs?: {
+    color?: string
+    trim?: string
+    exteriorOption?: string
+    interiorOption?: string
+    accessories?: string[]
+  }
   createdAt: string
   status: 'Baru' | 'Diproses' | 'Selesai'
 }
