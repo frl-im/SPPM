@@ -353,151 +353,168 @@ export default function AdminPage() {
       </section>
 
       {/* Executive Navigation Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20 mb-8">
-        <div className="bg-white rounded-2xl p-2 shadow-premium border border-mazda-border-gray/80 flex flex-col sm:flex-row gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveAdminTab('OPERATIONAL')}
-            className={`flex-1 py-3.5 px-6 rounded-xl font-mazda font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
-              activeAdminTab === 'OPERATIONAL'
-                ? 'bg-mazda-burgundy text-white shadow-md scale-[1.01]'
-                : 'text-mazda-charcoal hover:bg-mazda-light-gray/60'
-            }`}
-          >
-            <span className="text-base">🏎️</span>
-            <span>Manajemen Operasional & Reservasi</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveAdminTab('ANALYTICS')}
-            className={`flex-1 py-3.5 px-6 rounded-xl font-mazda font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
-              activeAdminTab === 'ANALYTICS'
-                ? 'bg-gradient-to-r from-mazda-cyan to-[#0088CC] text-[#1A1A1A] shadow-md scale-[1.01]'
-                : 'text-mazda-charcoal hover:bg-mazda-light-gray/60'
-            }`}
-          >
-            <span className="text-base">📊</span>
-            <span>Dashboard Laporan & Grafik Statistik Eksekutif</span>
-          </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 relative z-20 mb-10 animate-fade-in">
+        <div className="border-b border-mazda-border-gray/80 bg-white/90 backdrop-blur-md rounded-2xl px-6 pt-2 shadow-premium flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-2 sm:gap-8 overflow-x-auto">
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab('OPERATIONAL')}
+              className={`py-4 px-2 font-mazda font-bold text-xs uppercase tracking-[0.18em] border-b-2 transition-all duration-300 cursor-pointer whitespace-nowrap ${
+                activeAdminTab === 'OPERATIONAL'
+                  ? 'border-mazda-burgundy text-mazda-burgundy'
+                  : 'border-transparent text-mazda-steel-gray hover:text-mazda-charcoal'
+              }`}
+            >
+              Manajemen Operasional & Reservasi
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab('ANALYTICS')}
+              className={`py-4 px-2 font-mazda font-bold text-xs uppercase tracking-[0.18em] border-b-2 transition-all duration-300 cursor-pointer whitespace-nowrap ${
+                activeAdminTab === 'ANALYTICS'
+                  ? 'border-mazda-burgundy text-mazda-burgundy'
+                  : 'border-transparent text-mazda-steel-gray hover:text-mazda-charcoal'
+              }`}
+            >
+              Laporan & Grafik Statistik Eksekutif
+            </button>
+          </div>
+          <div className="hidden md:flex items-center gap-2 text-[11px] font-mono text-mazda-steel-gray pb-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+            <span>Executive Portal Active</span>
+          </div>
         </div>
       </div>
 
       {activeAdminTab === 'ANALYTICS' ? (
         /* =========================================================================
-         * 📊 DASHBOARD LAPORAN & GRAFIK STATISTIK KHUSUS ADMIN
+         * 📊 DASHBOARD LAPORAN & GRAFIK STATISTIK KHUSUS ADMIN (ULTRA-ELEGANT)
          * ========================================================================= */
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 space-y-8 animate-fade-in">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 space-y-8 animate-fade-in pb-16">
           {/* Header Action Bar */}
-          <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 sm:p-8 shadow-premium flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-8 shadow-premium flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <span className="text-[11px] font-mazda font-bold uppercase tracking-[0.25em] text-mazda-cyan block">
-                Executive Statistical Intelligence
+              <span className="text-xs font-mazda font-bold uppercase tracking-[0.25em] text-mazda-burgundy block">
+                Executive Intelligence
               </span>
-              <h2 className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-charcoal mt-1">
+              <h2 className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-charcoal mt-1.5 tracking-tight">
                 Laporan & Analitik Kinerja SPPM
               </h2>
-              <p className="text-xs sm:text-sm text-mazda-steel-gray mt-1 max-w-2xl font-light">
-                Pantau distribusi inventaris, tren harga supercar, performa kalkulasi cicilan, dan analisis konversi prospek VIP secara real-time.
+              <p className="text-sm text-mazda-steel-gray mt-1 max-w-2xl font-light leading-relaxed">
+                Tinjauan komprehensif atas valuasi armada showroom, distribusi harga, serta efektivitas penanganan konsultasi klien prioritas.
               </p>
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-3.5 flex-wrap">
               <button
                 type="button"
                 onClick={handleExportCSV}
-                className="px-5 py-3 rounded-xl bg-mazda-light-gray/80 hover:bg-mazda-light-gray border border-mazda-border-gray text-mazda-charcoal text-xs font-mazda font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+                className="px-6 py-3.5 rounded-xl bg-mazda-light-gray/80 hover:bg-[#E2E4E6] border border-mazda-border-gray text-mazda-charcoal text-xs font-mazda font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-2xs"
               >
-                <span>📥</span>
-                <span>Unduh Laporan (.CSV)</span>
+                Unduh Rekap (.CSV)
               </button>
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-5 py-3 rounded-xl bg-mazda-burgundy hover:bg-[#800A27] text-white text-xs font-mazda font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md"
+                className="px-6 py-3.5 rounded-xl bg-mazda-burgundy hover:bg-[#800A27] text-white text-xs font-mazda font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-md"
               >
-                <span>🖨️</span>
-                <span>Cetak Laporan PDF</span>
+                Cetak Laporan PDF
               </button>
             </div>
           </div>
 
           {/* Key Financial Metrics (4 Cards) */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 shadow-premium flex flex-col justify-between">
+            <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
               <div>
-                <p className="text-[11px] text-mazda-steel-gray font-mazda font-bold uppercase tracking-wider">Total Valuasi Armada</p>
-                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-burgundy mt-2">
+                <span className="text-[11px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                  Total Valuasi Armada
+                </span>
+                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-burgundy mt-2.5 tracking-tight">
                   {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(analytics.totalValuation)}
                 </p>
               </div>
-              <span className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5">
-                <span>💎</span> Akumulasi OTR seluruh {cars.length} unit
-              </span>
+              <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
+                <span>Akumulasi OTR</span>
+                <span className="font-mono font-bold text-mazda-charcoal">{cars.length} Unit</span>
+              </div>
             </div>
 
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 shadow-premium flex flex-col justify-between">
+            <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
               <div>
-                <p className="text-[11px] text-mazda-steel-gray font-mazda font-bold uppercase tracking-wider">Rata-Rata Harga / Unit</p>
-                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-charcoal mt-2">
+                <span className="text-[11px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                  Rata-Rata Harga / Unit
+                </span>
+                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-charcoal mt-2.5 tracking-tight">
                   {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(analytics.averagePrice)}
                 </p>
               </div>
-              <span className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5">
-                <span>🏷️</span> Standar kelas penawaran SPPM
-              </span>
+              <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
+                <span>Standar Showroom</span>
+                <span className="font-semibold text-mazda-charcoal">Kelas Flagship</span>
+              </div>
             </div>
 
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 shadow-premium flex flex-col justify-between">
+            <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
               <div>
-                <p className="text-[11px] text-mazda-steel-gray font-mazda font-bold uppercase tracking-wider">Penyelesaian Leads (SLA)</p>
-                <p className="text-2xl sm:text-3xl font-mazda font-bold text-green-700 mt-2">
-                  {analytics.responseRate}%
-                </p>
-                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-3 overflow-hidden">
-                  <div className="bg-green-600 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${analytics.responseRate}%` }} />
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                    SLA Penanganan Leads
+                  </span>
+                  <span className="font-mono text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    {analytics.responseRate}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-4 overflow-hidden">
+                  <div className="bg-mazda-charcoal h-full rounded-full transition-all duration-1000" style={{ width: `${analytics.responseRate}%` }} />
                 </div>
               </div>
-              <span className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5">
-                <span>⚡</span> {analytics.statusDiproses + analytics.statusSelesai} dari {inquiries.length} pesanan tertangani
-              </span>
+              <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
+                <span>Tertangani</span>
+                <span className="font-mono font-bold text-mazda-charcoal">{analytics.statusDiproses + analytics.statusSelesai} dari {inquiries.length}</span>
+              </div>
             </div>
 
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-6 shadow-premium flex flex-col justify-between">
+            <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
               <div>
-                <p className="text-[11px] text-mazda-steel-gray font-mazda font-bold uppercase tracking-wider">Favorit Simulasi Tenor</p>
-                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-cyan mt-2">
-                  {analytics.avgTenor} <span className="text-base font-normal text-mazda-charcoal">Bulan</span>
+                <span className="text-[11px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                  Simulasi Tenor Favorit
+                </span>
+                <p className="text-2xl sm:text-3xl font-mazda font-bold text-mazda-charcoal mt-2.5 tracking-tight">
+                  {analytics.avgTenor} <span className="text-base font-light text-mazda-steel-gray uppercase">Bulan</span>
                 </p>
               </div>
-              <span className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5 font-mono">
-                <span>💰</span> Rata-rata DP: Rp {new Intl.NumberFormat('id-ID').format(analytics.avgDP)}
-              </span>
+              <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
+                <span>Rata-rata DP</span>
+                <span className="font-mono font-bold text-mazda-charcoal">Rp {new Intl.NumberFormat('id-ID').format(analytics.avgDP)}</span>
+              </div>
             </div>
           </div>
 
           {/* Charts Section 1: Kategori & Segmentasi Harga */}
           <div className="grid gap-8 md:grid-cols-2 items-stretch">
             {/* Grafik 1: Distribusi Kategori Armada */}
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
+            <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-8 shadow-premium flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
-                  <div>
-                    <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-mazda-burgundy block">Grafik Analisis</span>
-                    <h3 className="text-lg font-mazda font-bold text-mazda-charcoal">Distribusi Kategori Kendaraan</h3>
-                  </div>
-                  <span className="text-2xl">🏎️</span>
+                <div className="border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <span className="text-[10px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                    Inventaris Showroom
+                  </span>
+                  <h3 className="text-lg font-mazda font-bold text-mazda-charcoal mt-1 tracking-tight">
+                    Distribusi Kategori Kendaraan
+                  </h3>
                 </div>
 
                 <div className="space-y-5">
                   {analytics.categoryBreakdown.map((item, idx) => (
-                    <div key={idx} className="space-y-1.5">
+                    <div key={idx} className="space-y-2">
                       <div className="flex items-center justify-between text-xs font-semibold text-mazda-charcoal">
-                        <span>{item.name}</span>
-                        <span className="font-mono text-mazda-steel-gray">{item.count} unit ({item.percentage}%)</span>
+                        <span className="uppercase tracking-wider">{item.name}</span>
+                        <span className="font-mono text-mazda-steel-gray font-normal">{item.count} Unit ({item.percentage}%)</span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden p-0.5 border border-gray-200">
+                      <div className="w-full bg-mazda-light-gray/60 rounded-full h-2 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-mazda-burgundy to-red-600 transition-all duration-1000"
-                          style={{ width: `${Math.max(8, item.percentage)}%` }}
+                          className="h-full rounded-full bg-mazda-charcoal transition-all duration-1000"
+                          style={{ width: `${Math.max(6, item.percentage)}%` }}
                         />
                       </div>
                     </div>
@@ -506,52 +523,58 @@ export default function AdminPage() {
               </div>
 
               <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
-                <span>Total Armada Terdaftar: <strong>{cars.length} Unit</strong></span>
-                <span>⭐ Unit Unggulan: <strong>{stats.featuredCars}</strong></span>
+                <span>Total Koleksi Aktif</span>
+                <span className="font-mono font-bold text-mazda-charcoal">{cars.length} Kendaraan</span>
               </div>
             </div>
 
             {/* Grafik 2: Segmentasi Harga Supercar */}
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
+            <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-8 shadow-premium flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
-                  <div>
-                    <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-mazda-cyan block">Segmentasi Pasar</span>
-                    <h3 className="text-lg font-mazda font-bold text-mazda-charcoal">Komposisi Kelas Harga Unit</h3>
-                  </div>
-                  <span className="text-2xl">🏷️</span>
+                <div className="border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <span className="text-[10px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                    Segmentasi Pasar
+                  </span>
+                  <h3 className="text-lg font-mazda font-bold text-mazda-charcoal mt-1 tracking-tight">
+                    Komposisi Kelas Harga Armada
+                  </h3>
                 </div>
 
-                {/* Stacked Proportional Bar Visual */}
-                <div className="w-full h-8 rounded-xl overflow-hidden flex shadow-inner border border-gray-200 my-4">
+                {/* Refined Proportional Bar Visual */}
+                <div className="w-full h-4 rounded-full overflow-hidden flex bg-mazda-light-gray my-5">
                   {analytics.priceTiers.map((tier, idx) => (
                     <div
                       key={idx}
-                      className={`h-full bg-gradient-to-r ${tier.colorClass} transition-all duration-1000 relative group`}
-                      style={{ width: `${Math.max(12, tier.percentage)}%` }}
-                      title={`${tier.label}: ${tier.count} unit`}
+                      className="h-full transition-all duration-1000 border-r border-white/40 last:border-none"
+                      style={{
+                        width: `${Math.max(10, tier.percentage)}%`,
+                        backgroundColor: idx === 0 ? '#8C8D8E' : idx === 1 ? '#1A1A1A' : '#800A27'
+                      }}
                     />
                   ))}
                 </div>
 
                 <div className="grid gap-3.5 mt-6">
                   {analytics.priceTiers.map((tier, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-mazda-light-gray/40 border border-mazda-border-gray/60">
+                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl border border-mazda-border-gray/60 bg-mazda-light-gray/30">
                       <div className="flex items-center gap-3">
-                        <span className="w-3.5 h-3.5 rounded-full shadow-sm flex-shrink-0" style={{ backgroundColor: tier.barHex }} />
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: idx === 0 ? '#8C8D8E' : idx === 1 ? '#1A1A1A' : '#800A27' }}
+                        />
                         <span className="text-xs font-semibold text-mazda-charcoal">{tier.label}</span>
                       </div>
-                      <span className="text-xs font-mono font-bold text-mazda-charcoal bg-white px-2.5 py-1 rounded-lg border border-gray-200 shadow-2xs">
-                        {tier.count} Unit ({tier.percentage}%)
+                      <span className="text-xs font-mono font-bold text-mazda-charcoal">
+                        {tier.count} Unit <span className="font-light text-mazda-steel-gray">({tier.percentage}%)</span>
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-8 pt-4 border-t border-gray-100 text-xs text-mazda-steel-gray flex items-center justify-between">
-                <span>Proporsi terbesar mendominasi strategi stok VIP Anda.</span>
-                <span className="font-semibold text-mazda-burgundy">Katalog SPPM</span>
+              <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
+                <span>Fokus Penawaran VIP</span>
+                <span className="font-semibold text-mazda-charcoal">Supercar & Hypercar</span>
               </div>
             </div>
           </div>
@@ -559,31 +582,31 @@ export default function AdminPage() {
           {/* Charts Section 2: Tren & Tipe Pengajuan Leads */}
           <div className="grid gap-8 md:grid-cols-2 items-stretch">
             {/* Grafik 3: Komposisi Tipe Leads */}
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
+            <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-8 shadow-premium flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
-                  <div>
-                    <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-purple-600 block">Lead Intelligence</span>
-                    <h3 className="text-lg font-mazda font-bold text-mazda-charcoal">Asal & Tipe Minat Klien VIP</h3>
-                  </div>
-                  <span className="text-2xl">🎯</span>
+                <div className="border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <span className="text-[10px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                    Lead Intelligence
+                  </span>
+                  <h3 className="text-lg font-mazda font-bold text-mazda-charcoal mt-1 tracking-tight">
+                    Asal & Tipe Minat Klien VIP
+                  </h3>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3.5">
                   {analytics.leadTypes.map((type, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl bg-white border border-mazda-border-gray/80 shadow-2xs">
+                    <div key={idx} className="p-4 rounded-xl border border-mazda-border-gray/80 bg-white">
                       <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{type.icon}</span>
-                          <span className="text-xs font-mazda font-bold text-mazda-charcoal">{type.label}</span>
-                        </div>
-                        <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-gray-100 text-mazda-charcoal border border-gray-200">
-                          {type.count} Lead ({type.percentage}%)
+                        <span className="text-xs font-mazda font-bold uppercase tracking-wider text-mazda-charcoal">
+                          {type.label}
+                        </span>
+                        <span className="text-xs font-mono font-bold text-mazda-charcoal">
+                          {type.count} <span className="font-light text-mazda-steel-gray">({type.percentage}%)</span>
                         </span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-mazda-light-gray/60 rounded-full h-1.5 overflow-hidden">
                         <div
-                          className={`h-full rounded-full bg-gradient-to-r ${type.color} transition-all duration-1000`}
+                          className="h-full rounded-full bg-mazda-burgundy transition-all duration-1000"
                           style={{ width: `${Math.max(6, type.percentage)}%` }}
                         />
                       </div>
@@ -592,84 +615,86 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="mt-8 pt-4 border-t border-gray-100 text-xs text-mazda-steel-gray">
-                Total Leads Terdaftar: <strong className="text-mazda-charcoal font-mono">{inquiries.length} Pengajuan</strong>
+              <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
+                <span>Total Pengajuan Klien</span>
+                <span className="font-mono font-bold text-mazda-charcoal">{inquiries.length} Reservasi</span>
               </div>
             </div>
 
             {/* Grafik 4: Status Penanganan & Konversi */}
-            <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 shadow-premium flex flex-col justify-between">
+            <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-8 shadow-premium flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-mazda-border-gray/60 pb-4 mb-6">
-                  <div>
-                    <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-green-600 block">SLA & Penanganan</span>
-                    <h3 className="text-lg font-mazda font-bold text-mazda-charcoal">Status Penanganan Pesanan Masuk</h3>
-                  </div>
-                  <span className="text-2xl">⚡</span>
+                <div className="border-b border-mazda-border-gray/60 pb-4 mb-6">
+                  <span className="text-[10px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                    Penanganan & Konversi
+                  </span>
+                  <h3 className="text-lg font-mazda font-bold text-mazda-charcoal mt-1 tracking-tight">
+                    Status Reservasi Masuk
+                  </h3>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                  <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-center">
-                    <span className="block text-2xl sm:text-3xl font-mazda font-bold text-blue-700">{analytics.statusBaru}</span>
-                    <span className="block text-[11px] font-semibold uppercase text-blue-600 mt-1">Baru Masuk</span>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 rounded-xl border border-mazda-border-gray bg-mazda-light-gray/30 text-center">
+                    <span className="block text-2xl font-mono font-bold text-mazda-charcoal">{analytics.statusBaru}</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-mazda-steel-gray mt-1">Baru</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-center">
-                    <span className="block text-2xl sm:text-3xl font-mazda font-bold text-amber-700">{analytics.statusDiproses}</span>
-                    <span className="block text-[11px] font-semibold uppercase text-amber-600 mt-1">Sedang Diproses</span>
+                  <div className="p-4 rounded-xl border border-mazda-border-gray bg-mazda-light-gray/30 text-center">
+                    <span className="block text-2xl font-mono font-bold text-amber-700">{analytics.statusDiproses}</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-amber-800 mt-1">Diproses</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-green-50 border border-green-200 text-center">
-                    <span className="block text-2xl sm:text-3xl font-mazda font-bold text-green-700">{analytics.statusSelesai}</span>
-                    <span className="block text-[11px] font-semibold uppercase text-green-600 mt-1">Selesai / Deal</span>
+                  <div className="p-4 rounded-xl border border-mazda-border-gray bg-mazda-light-gray/30 text-center">
+                    <span className="block text-2xl font-mono font-bold text-emerald-700">{analytics.statusSelesai}</span>
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-800 mt-1">Selesai</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-mazda-light-gray/50 border border-mazda-border-gray space-y-2">
+                <div className="p-4 rounded-xl border border-mazda-border-gray/80 bg-white space-y-2.5">
                   <div className="flex items-center justify-between text-xs font-semibold text-mazda-charcoal">
-                    <span>Tingkat Efektivitas Respons (SLA)</span>
-                    <span className="font-mono text-green-700 font-bold">{analytics.responseRate}%</span>
+                    <span>Tingkat Efektivitas SLA</span>
+                    <span className="font-mono font-bold text-mazda-charcoal">{analytics.responseRate}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-full rounded-full transition-all duration-1000" style={{ width: `${analytics.responseRate}%` }} />
+                  <div className="w-full bg-mazda-light-gray rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-mazda-charcoal h-full rounded-full transition-all duration-1000" style={{ width: `${analytics.responseRate}%` }} />
                   </div>
-                  <p className="text-[11px] text-mazda-steel-gray font-light pt-1">
-                    * Indikator SLA menghitung persentase prospek yang telah direspons atau ditutup deal oleh tim penasihat VIP.
+                  <p className="text-[11px] text-mazda-steel-gray font-light pt-0.5 leading-relaxed">
+                    SLA menghitung persentase respons dan penutupan transaksi oleh tim penasihat eksekutif.
                   </p>
                 </div>
               </div>
 
               <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-mazda-steel-gray">
-                <span>Target SLA Minimum: <strong>85%</strong></span>
-                <span className="text-green-700 font-semibold">Kinerja Optimal</span>
+                <span>Standar Mutu Pelayanan</span>
+                <span className="font-semibold text-mazda-charcoal">Min. 85% SLA</span>
               </div>
             </div>
           </div>
 
           {/* Laporan Eksekutif: Top 5 Unit Valuasi Tertinggi */}
-          <div className="rounded-3xl border border-mazda-border-gray/80 bg-white p-7 sm:p-9 shadow-premium">
+          <div className="rounded-2xl border border-mazda-border-gray/80 bg-white p-8 shadow-premium">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-mazda-border-gray/60 pb-5 mb-6">
               <div>
-                <span className="text-[10px] font-mazda font-bold uppercase tracking-widest text-mazda-burgundy block">
-                  Flagship Inventory Table
+                <span className="text-[10px] font-mazda font-bold uppercase tracking-[0.2em] text-mazda-steel-gray block">
+                  Katalog Flagship
                 </span>
-                <h3 className="text-xl font-mazda font-bold text-mazda-charcoal mt-0.5">
-                  Top 5 Unit Kendaraan dengan Valuasi Tertinggi
+                <h3 className="text-xl font-mazda font-bold text-mazda-charcoal mt-1 tracking-tight">
+                  Top 5 Kendaraan dengan Valuasi Tertinggi
                 </h3>
               </div>
-              <span className="text-xs text-mazda-steel-gray font-mono bg-mazda-light-gray px-3.5 py-1.5 rounded-xl border border-mazda-border-gray/80">
-                Peringkat Berdasarkan OTR
+              <span className="text-[11px] font-mono text-mazda-steel-gray uppercase tracking-wider border border-mazda-border-gray px-3 py-1.5 rounded-lg bg-mazda-light-gray/30">
+                Peringkat Valuasi OTR
               </span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-mazda-border-gray text-[11px] font-mazda font-bold uppercase tracking-wider text-mazda-steel-gray">
-                    <th className="py-3.5 px-4">#</th>
-                    <th className="py-3.5 px-4">Nama Unit & Varian</th>
-                    <th className="py-3.5 px-4">Kategori</th>
-                    <th className="py-3.5 px-4">Tahun</th>
-                    <th className="py-3.5 px-4">Harga OTR (IDR)</th>
-                    <th className="py-3.5 px-4 text-right">Status</th>
+                  <tr className="border-b border-mazda-border-gray text-[10px] font-mazda font-bold uppercase tracking-widest text-mazda-steel-gray">
+                    <th className="py-4 px-4 font-mono">#</th>
+                    <th className="py-4 px-4">Nama Unit & Varian</th>
+                    <th className="py-4 px-4">Kategori</th>
+                    <th className="py-4 px-4">Tahun</th>
+                    <th className="py-4 px-4">Harga OTR (IDR)</th>
+                    <th className="py-4 px-4 text-right">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-mazda-border-gray/40 text-xs sm:text-sm">
@@ -677,10 +702,10 @@ export default function AdminPage() {
                     <tr key={car.id} className="hover:bg-mazda-light-gray/40 transition-colors">
                       <td className="py-4 px-4 font-mono font-bold text-mazda-burgundy">{idx + 1}</td>
                       <td className="py-4 px-4 font-mazda font-bold text-mazda-charcoal">
-                        {car.name} <span className="text-mazda-steel-gray font-normal">({car.model})</span>
+                        {car.name} <span className="text-mazda-steel-gray font-light ml-1">({car.model})</span>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="px-2.5 py-1 rounded-lg bg-gray-100 text-mazda-charcoal text-xs font-semibold border border-gray-200">
+                        <span className="px-2.5 py-1 rounded border border-mazda-border-gray text-mazda-charcoal text-[11px] font-semibold">
                           {car.category || 'Sports Car'}
                         </span>
                       </td>
@@ -690,11 +715,11 @@ export default function AdminPage() {
                       </td>
                       <td className="py-4 px-4 text-right">
                         {car.isFeatured ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-mazda-burgundy/10 text-mazda-burgundy text-[11px] font-bold border border-mazda-burgundy/20">
-                            ⭐ Unggulan
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-mazda-burgundy/30 text-mazda-burgundy bg-mazda-burgundy/5 text-[10px] font-bold uppercase tracking-wider">
+                            Featured
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[11px] font-medium border border-gray-200">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-gray-200 text-gray-500 bg-gray-50 text-[10px] font-semibold uppercase tracking-wider">
                             Reguler
                           </span>
                         )}
